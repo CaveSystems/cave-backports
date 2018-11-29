@@ -96,6 +96,23 @@ namespace System.Threading.Tasks
             }
         }
 
+        /// <summary>
+        /// Executes a for loop in which iterations may run in parallel.
+        /// </summary>
+        /// <param name="fromInclusive">The start index, inclusive.</param>
+        /// <param name="toExclusive">The end index, exclusive.</param>
+        /// <param name="action">The delegate that is invoked once per iteration.</param>
+        public static void For(int fromInclusive, int toExclusive, Action<int> action)
+        {
+            using (Runner<int> instance = new Runner<int>(Environment.ProcessorCount << 2, action))
+            {
+                for (int i = fromInclusive; i < toExclusive; i++)
+                {
+                    instance.Start(i);
+                }
+            }
+        }
+
         /// <summary>Executes a foreach operation.</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="concurrentTasks">The concurrent tasks.</param>

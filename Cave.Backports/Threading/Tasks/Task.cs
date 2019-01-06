@@ -14,8 +14,15 @@ namespace System.Threading.Tasks
         /// <param name="tasks">Task instances on which to wait.</param>
         public static void WaitAll(params Task[] tasks)
         {
-            if (tasks == null) throw new ArgumentNullException("Tasks");
-            foreach (Task task in tasks) task.Wait();
+            if (tasks == null)
+            {
+                throw new ArgumentNullException("Tasks");
+            }
+
+            foreach (Task task in tasks)
+            {
+                task.Wait();
+            }
         }
 
         /// <summary>
@@ -31,13 +38,24 @@ namespace System.Threading.Tasks
                 return true;
             }
 
-            if (tasks == null) throw new ArgumentNullException("Tasks");
+            if (tasks == null)
+            {
+                throw new ArgumentNullException("Tasks");
+            }
+
             DateTime timeout = DateTime.UtcNow + new TimeSpan(TimeSpan.TicksPerMillisecond * timeoutMillis);
             foreach (Task task in tasks)
             {
                 TimeSpan wait = timeout - DateTime.UtcNow;
-                if (wait < TimeSpan.Zero && !task.IsCompleted) return false;
-                if (!task.Wait((int)(wait.Ticks / TimeSpan.TicksPerMillisecond))) return false;
+                if (wait < TimeSpan.Zero && !task.IsCompleted)
+                {
+                    return false;
+                }
+
+                if (!task.Wait((int)(wait.Ticks / TimeSpan.TicksPerMillisecond)))
+                {
+                    return false;
+                }
             }
             return true;
         }
@@ -49,7 +67,11 @@ namespace System.Threading.Tasks
         /// <returns>The index of the completed Task object in the tasks array.</returns>
         public static int WaitAny(Task[] tasks)
         {
-            if (tasks == null) throw new ArgumentNullException("Tasks");
+            if (tasks == null)
+            {
+                throw new ArgumentNullException("Tasks");
+            }
+
             while (true)
             {
                 for (int i = 0; i < tasks.Length; i++)
@@ -71,7 +93,11 @@ namespace System.Threading.Tasks
         /// <returns>The index of the completed Task object in the tasks array.</returns>
         public static int WaitAny(Task[] tasks, int timeoutMillis)
         {
-            if (tasks == null) throw new ArgumentNullException("Tasks");
+            if (tasks == null)
+            {
+                throw new ArgumentNullException("Tasks");
+            }
+
             DateTime timeout = DateTime.UtcNow + new TimeSpan(timeoutMillis * TimeSpan.TicksPerMillisecond);
             while (DateTime.UtcNow <= timeout)
             {
@@ -87,7 +113,7 @@ namespace System.Threading.Tasks
             return -1;
         }
 
-#region Task.Factory class
+        #region Task.Factory class
         /// <summary>
         /// Provides a simple task starting mechanism backported from net 4.0 using the <see cref="Task.Factory.StartNew(Action, TaskCreationOptions)"/> function
         /// </summary>
@@ -129,13 +155,13 @@ namespace System.Threading.Tasks
             /// <returns></returns>
             public static Task StartNew<T>(Action<T> action, T state, TaskCreationOptions options = TaskCreationOptions.None)
             {
-                return StartNew((object o) => action((T)o), (object)state, options);
+                return StartNew((object o) => action((T)o), state, options);
             }
         }
 
-#endregion
+        #endregion
 
-#region private functionality
+        #region private functionality
         object m_State;
         object m_Action;
         TaskCreationOptions m_CreationOptions;
@@ -143,19 +169,25 @@ namespace System.Threading.Tasks
 
         void Worker(object nothing = null)
         {
-            var action = m_Action;
+            object action = m_Action;
             //spawn a new seperate thread for long running threads
             if ((m_CreationOptions == TaskCreationOptions.LongRunning) && (Thread.CurrentThread.IsThreadPoolThread))
             {
-                Thread thread = new Thread(Worker);
-                thread.IsBackground = true;
+                Thread thread = new Thread(Worker)
+                {
+                    IsBackground = true
+                };
                 thread.Start(action);
                 return;
             }
 
             try
             {
-                if (m_Started) throw new InvalidOperationException("Already started!");
+                if (m_Started)
+                {
+                    throw new InvalidOperationException("Already started!");
+                }
+
                 m_Started = true;
                 { if (action is Action a) { a(); return; } }
                 { if (action is Action<object> a) { a(m_State); return; } }
@@ -170,18 +202,18 @@ namespace System.Threading.Tasks
                 Monitor.Pulse(this);
             }
         }
-#endregion
+        #endregion
 
-#region constructor
+        #region constructor
         private Task(TaskCreationOptions creationOptions, object action, object state)
         {
             m_CreationOptions = creationOptions;
             m_Action = action;
             m_State = state;
         }
-#endregion
+        #endregion
 
-#region public functionality
+        #region public functionality
         /// <summary>
         /// Waits for a task completion
         /// </summary>
@@ -189,7 +221,10 @@ namespace System.Threading.Tasks
         {
             while (!IsCompleted)
             {
-                lock (this) Monitor.Wait(this);
+                lock (this)
+                {
+                    Monitor.Wait(this);
+                }
             }
         }
 
@@ -199,12 +234,19 @@ namespace System.Threading.Tasks
         /// </summary>
         public bool Wait(int mssTimeout)
         {
-            if (IsCompleted) return true;
-            lock (this) return Monitor.Wait(this, mssTimeout);
-        }
-#endregion
+            if (IsCompleted)
+            {
+                return true;
+            }
 
-#region public properties
+            lock (this)
+            {
+                return Monitor.Wait(this, mssTimeout);
+            }
+        }
+        #endregion
+
+        #region public properties
         /// <summary>
         /// Obtains the expection thown by a task
         /// </summary>
@@ -218,10 +260,10 @@ namespace System.Threading.Tasks
         /// <summary>
         /// Obtains whether the Task completed due to an unhandled exception.
         /// </summary>
-        public bool IsFaulted { get { return Exception != null; } }
-#endregion
+        public bool IsFaulted => Exception != null;
+        #endregion
 
-#region IDisposable Member
+        #region IDisposable Member
         /// <summary>Releases the unmanaged resources used by this instance and optionally releases the managed resources.</summary>
         /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
@@ -236,7 +278,7 @@ namespace System.Threading.Tasks
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-#endregion
+        #endregion
     }
 }
 #else

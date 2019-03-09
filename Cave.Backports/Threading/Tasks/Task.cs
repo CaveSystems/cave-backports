@@ -125,7 +125,7 @@ namespace System.Threading.Tasks
             /// </summary>
             /// <param name="action">The action delegate to execute asynchronously.</param>
             /// <param name="options">LongRunning spawns a new seperate Thread.</param>
-            /// <returns></returns>
+            /// <returns>Returns a new <see cref="Task"/> instance.</returns>
             public static Task StartNew(Action action, TaskCreationOptions options = TaskCreationOptions.None)
             {
                 Task task = new Task(options, action, null);
@@ -137,9 +137,9 @@ namespace System.Threading.Tasks
             /// Creates and starts a task.
             /// </summary>
             /// <param name="action">The action delegate to execute asynchronously.</param>
-            /// <param name="options">LongRunning spawns a new seperate Thread.</param>
             /// <param name="state">An object containing data to be used by the action delegate.</param>
-            /// <returns></returns>
+            /// <param name="options">LongRunning spawns a new seperate Thread.</param>
+            /// <returns>Returns a new <see cref="Task"/> instance.</returns>
             public static Task StartNew(Action<object> action, object state, TaskCreationOptions options = TaskCreationOptions.None)
             {
                 Task task = new Task(options, action, state);
@@ -151,9 +151,9 @@ namespace System.Threading.Tasks
             /// Creates and starts a task.
             /// </summary>
             /// <param name="action">The action delegate to execute asynchronously.</param>
-            /// <param name="options">LongRunning spawns a new seperate Thread.</param>
             /// <param name="state">An object containing data to be used by the action delegate.</param>
-            /// <returns></returns>
+            /// <param name="options">LongRunning spawns a new seperate Thread.</param>
+            /// <returns>Returns a new <see cref="Task"/> instance.</returns>
             public static Task StartNew<T>(Action<T> action, T state, TaskCreationOptions options = TaskCreationOptions.None)
             {
                 return StartNew((object o) => action((T)o), state, options);
@@ -246,6 +246,7 @@ namespace System.Threading.Tasks
         /// <summary>
         /// Waits for a task completion.
         /// </summary>
+        /// <returns>Releases the lock on an object and blocks the current thread until it reacquires the lock.</returns>
         public bool Wait(int mssTimeout)
         {
             if (IsCompleted)

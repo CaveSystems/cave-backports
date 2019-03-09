@@ -15,7 +15,8 @@
     <PackageTags>CaveSystems Backports</PackageTags>
     <Description>CaveSystems Backports Bibliothek. This packages contains various backports needed for CaveSystems packages and software when running on older frameworks.</Description>
     <PackageProjectUrl>https://github.com/CaveSystems/cave-backports</PackageProjectUrl>
-    <!--settings-->
+	<RepositoryUrl>https://github.com/CaveSystems/cave-backports</RepositoryUrl>
+   <!--settings-->
     <PackageReleaseNotes />
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <SignAssembly>true</SignAssembly>

@@ -4,7 +4,7 @@
 namespace System.Threading.Tasks
 {
     /// <summary>
-    /// Provides a basic set tasking functions backported from net 4.0 using the <see cref="Task.Factory.StartNew(Action, TaskCreationOptions)"/> function
+    /// Provides a basic set tasking functions backported from net 4.0 using the <see cref="Task.Factory.StartNew(Action, TaskCreationOptions)"/> function.
     /// </summary>
     public class Task : IDisposable
     {
@@ -114,8 +114,9 @@ namespace System.Threading.Tasks
         }
 
         #region Task.Factory class
+
         /// <summary>
-        /// Provides a simple task starting mechanism backported from net 4.0 using the <see cref="Task.Factory.StartNew(Action, TaskCreationOptions)"/> function
+        /// Provides a simple task starting mechanism backported from net 4.0 using the <see cref="Task.Factory.StartNew(Action, TaskCreationOptions)"/> function.
         /// </summary>
         public static class Factory
         {
@@ -123,7 +124,7 @@ namespace System.Threading.Tasks
             /// Creates and starts a task.
             /// </summary>
             /// <param name="action">The action delegate to execute asynchronously.</param>
-            /// <param name="options">LongRunning spawns a new seperate Thread</param>
+            /// <param name="options">LongRunning spawns a new seperate Thread.</param>
             /// <returns></returns>
             public static Task StartNew(Action action, TaskCreationOptions options = TaskCreationOptions.None)
             {
@@ -136,7 +137,7 @@ namespace System.Threading.Tasks
             /// Creates and starts a task.
             /// </summary>
             /// <param name="action">The action delegate to execute asynchronously.</param>
-            /// <param name="options">LongRunning spawns a new seperate Thread</param>
+            /// <param name="options">LongRunning spawns a new seperate Thread.</param>
             /// <param name="state">An object containing data to be used by the action delegate.</param>
             /// <returns></returns>
             public static Task StartNew(Action<object> action, object state, TaskCreationOptions options = TaskCreationOptions.None)
@@ -150,7 +151,7 @@ namespace System.Threading.Tasks
             /// Creates and starts a task.
             /// </summary>
             /// <param name="action">The action delegate to execute asynchronously.</param>
-            /// <param name="options">LongRunning spawns a new seperate Thread</param>
+            /// <param name="options">LongRunning spawns a new seperate Thread.</param>
             /// <param name="state">An object containing data to be used by the action delegate.</param>
             /// <returns></returns>
             public static Task StartNew<T>(Action<T> action, T state, TaskCreationOptions options = TaskCreationOptions.None)
@@ -162,20 +163,21 @@ namespace System.Threading.Tasks
         #endregion
 
         #region private functionality
-        object m_State;
-        object m_Action;
-        TaskCreationOptions m_CreationOptions;
-        bool m_Started = false;
+        object state;
+        object action;
+        TaskCreationOptions creationOptions;
+        bool started = false;
 
         void Worker(object nothing = null)
         {
-            object action = m_Action;
-            //spawn a new seperate thread for long running threads
-            if ((m_CreationOptions == TaskCreationOptions.LongRunning) && (Thread.CurrentThread.IsThreadPoolThread))
+            object action = this.action;
+
+            // spawn a new seperate thread for long running threads
+            if ((creationOptions == TaskCreationOptions.LongRunning) && Thread.CurrentThread.IsThreadPoolThread)
             {
                 Thread thread = new Thread(Worker)
                 {
-                    IsBackground = true
+                    IsBackground = true,
                 };
                 thread.Start(action);
                 return;
@@ -183,14 +185,26 @@ namespace System.Threading.Tasks
 
             try
             {
-                if (m_Started)
+                if (started)
                 {
                     throw new InvalidOperationException("Already started!");
                 }
 
-                m_Started = true;
-                { if (action is Action a) { a(); return; } }
-                { if (action is Action<object> a) { a(m_State); return; } }
+                started = true;
+                {
+                    if (action is Action a)
+                    {
+                        a();
+                        return;
+                    }
+                }
+                {
+                    if (action is Action<object> a)
+                    {
+                        a(state);
+                        return;
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -207,15 +221,16 @@ namespace System.Threading.Tasks
         #region constructor
         private Task(TaskCreationOptions creationOptions, object action, object state)
         {
-            m_CreationOptions = creationOptions;
-            m_Action = action;
-            m_State = state;
+            this.creationOptions = creationOptions;
+            this.action = action;
+            this.state = state;
         }
         #endregion
 
         #region public functionality
+
         /// <summary>
-        /// Waits for a task completion
+        /// Waits for a task completion.
         /// </summary>
         public void Wait()
         {
@@ -228,9 +243,8 @@ namespace System.Threading.Tasks
             }
         }
 
-
         /// <summary>
-        /// Waits for a task completion
+        /// Waits for a task completion.
         /// </summary>
         public bool Wait(int mssTimeout)
         {
@@ -247,13 +261,14 @@ namespace System.Threading.Tasks
         #endregion
 
         #region public properties
+
         /// <summary>
-        /// Obtains the expection thown by a task
+        /// Obtains the expection thown by a task.
         /// </summary>
         public Exception Exception { get; private set; }
 
         /// <summary>
-        /// Obtains whether the task completed or not
+        /// Obtains whether the task completed or not.
         /// </summary>
         public bool IsCompleted { get; private set; }
 
@@ -264,6 +279,7 @@ namespace System.Threading.Tasks
         #endregion
 
         #region IDisposable Member
+
         /// <summary>Releases the unmanaged resources used by this instance and optionally releases the managed resources.</summary>
         /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
@@ -271,7 +287,7 @@ namespace System.Threading.Tasks
         }
 
         /// <summary>
-        /// Frees all used resources
+        /// Frees all used resources.
         /// </summary>
         public void Dispose()
         {

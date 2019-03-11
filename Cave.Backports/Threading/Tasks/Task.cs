@@ -29,7 +29,8 @@ namespace System.Threading.Tasks
         /// Waits for all of the provided Task objects to complete execution.
         /// </summary>
         /// <param name="tasks">Task instances on which to wait.</param>
-        /// <param name="timeoutMillis"></param>
+        /// <param name="timeoutMillis">milliseconds to wait.</param>
+        /// <returns>True if all tasks have completed in the given time.</returns>
         public static bool WaitAll(Task[] tasks, int timeoutMillis)
         {
             if (timeoutMillis < 0)
@@ -63,7 +64,7 @@ namespace System.Threading.Tasks
         /// <summary>
         /// Waits for any of the provided Task objects to complete execution.
         /// </summary>
-        /// <param name="tasks"></param>
+        /// <param name="tasks">Task instances on which to wait.</param>
         /// <returns>The index of the completed Task object in the tasks array.</returns>
         public static int WaitAny(Task[] tasks)
         {
@@ -88,8 +89,8 @@ namespace System.Threading.Tasks
         /// <summary>
         /// Waits for any of the provided Task objects to complete execution.
         /// </summary>
-        /// <param name="tasks"></param>
-        /// <param name="timeoutMillis"></param>
+        /// <param name="tasks">Task instances on which to wait.</param>
+        /// <param name="timeoutMillis">milliseconds to wait.</param>
         /// <returns>The index of the completed Task object in the tasks array.</returns>
         public static int WaitAny(Task[] tasks, int timeoutMillis)
         {
@@ -150,6 +151,7 @@ namespace System.Threading.Tasks
             /// <summary>
             /// Creates and starts a task.
             /// </summary>
+            /// <typeparam name="T">Type of the action delegate.</typeparam>
             /// <param name="action">The action delegate to execute asynchronously.</param>
             /// <param name="state">An object containing data to be used by the action delegate.</param>
             /// <param name="options">LongRunning spawns a new seperate Thread.</param>
@@ -246,6 +248,7 @@ namespace System.Threading.Tasks
         /// <summary>
         /// Waits for a task completion.
         /// </summary>
+        /// <param name="mssTimeout">Milliseconds to wait.</param>
         /// <returns>Releases the lock on an object and blocks the current thread until it reacquires the lock.</returns>
         public bool Wait(int mssTimeout)
         {
@@ -264,17 +267,17 @@ namespace System.Threading.Tasks
         #region public properties
 
         /// <summary>
-        /// Obtains the expection thown by a task.
+        /// Gets the expection thown by a task.
         /// </summary>
         public Exception Exception { get; private set; }
 
         /// <summary>
-        /// Obtains whether the task completed or not.
+        /// Gets a value indicating whether the task completed or not.
         /// </summary>
         public bool IsCompleted { get; private set; }
 
         /// <summary>
-        /// Obtains whether the Task completed due to an unhandled exception.
+        /// Gets a value indicating whether the Task completed due to an unhandled exception.
         /// </summary>
         public bool IsFaulted => Exception != null;
         #endregion

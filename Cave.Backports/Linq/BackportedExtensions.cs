@@ -124,6 +124,38 @@ namespace System.Linq
         }
 
         /// <summary>
+        /// Computes the sum of a sequence of values.
+        /// </summary>
+        /// <param name="source">A sequence of values to calculate the sum of.</param>
+        /// <returns>The sum of the values in the sequence.</returns>
+        public static float Sum(this IEnumerable<float> source)
+        {
+            float result = 0;
+            foreach (var item in source)
+            {
+                result += item;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Computes the sum of a sequence of values.
+        /// </summary>
+        /// <param name="source">A sequence of values to calculate the sum of.</param>
+        /// <returns>The sum of the values in the sequence.</returns>
+        public static double Sum(this IEnumerable<double> source)
+        {
+            double result = 0;
+            foreach (var item in source)
+            {
+                result += item;
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Returns the maximum value in a sequence of values.
         /// </summary>
         /// <param name="source">A sequence of values to determine the maximum value of.</param>
@@ -162,6 +194,44 @@ namespace System.Linq
         }
 
         /// <summary>
+        /// Returns the maximum value in a sequence of values.
+        /// </summary>
+        /// <param name="source">A sequence of values to determine the maximum value of.</param>
+        /// <returns>The maximum value in the sequence.</returns>
+        public static float Max(this IEnumerable<float> source)
+        {
+            float result = source.First();
+            foreach (var item in source)
+            {
+                if (item > result)
+                {
+                    result = item;
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Returns the maximum value in a sequence of values.
+        /// </summary>
+        /// <param name="source">A sequence of values to determine the maximum value of.</param>
+        /// <returns>The maximum value in the sequence.</returns>
+        public static double Max(this IEnumerable<double> source)
+        {
+            double result = source.First();
+            foreach (var item in source)
+            {
+                if (item > result)
+                {
+                    result = item;
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Returns the minimum value in a sequence of values.
         /// </summary>
         /// <param name="source">A sequence of values to determine the minimum value of.</param>
@@ -188,6 +258,44 @@ namespace System.Linq
         public static long Min(this IEnumerable<long> source)
         {
             long result = source.First();
+            foreach (var item in source)
+            {
+                if (item > result)
+                {
+                    result = item;
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Returns the minimum value in a sequence of values.
+        /// </summary>
+        /// <param name="source">A sequence of values to determine the minimum value of.</param>
+        /// <returns>The minimum value in the sequence.</returns>
+        public static float Min(this IEnumerable<float> source)
+        {
+            float result = source.First();
+            foreach (var item in source)
+            {
+                if (item > result)
+                {
+                    result = item;
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Returns the minimum value in a sequence of values.
+        /// </summary>
+        /// <param name="source">A sequence of values to determine the minimum value of.</param>
+        /// <returns>The minimum value in the sequence.</returns>
+        public static double Min(this IEnumerable<double> source)
+        {
+            double result = source.First();
             foreach (var item in source)
             {
                 if (item > result)

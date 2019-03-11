@@ -8,11 +8,11 @@ namespace System.Linq
     {
 #if NET20
         /// <summary>
-        /// Warning: This is a net20 backport and not using an on the fly enumeration!.
+        /// Creates an array from a <see cref="IEnumerable{T}"/>.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="items"></param>
-        /// <returns></returns>
+        /// <typeparam name="T">The type of the elements of source.</typeparam>
+        /// <param name="items">An <see cref="IEnumerable{T}"/> to create an array from.</param>
+        /// <returns>An array that contains the elements from the input sequence.</returns>
         public static T[] ToArray<T>(this IEnumerable<T> items)
         {
             var list = items.ToList();
@@ -22,23 +22,23 @@ namespace System.Linq
         }
 
         /// <summary>
-        /// Warning: This is a net20 backport and not using an on the fly enumeration!.
+        /// Creates a <see cref="List{T}"/> from an <see cref="IEnumerable{T}"/>.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="items"></param>
-        /// <returns></returns>
+        /// <typeparam name="T">The type of the elements of source.</typeparam>
+        /// <param name="items">The <see cref="IEnumerable{T}"/> to create a <see cref="List{T}"/> from.</param>
+        /// <returns>A <see cref="List{T}"/> that contains elements from the input sequence.</returns>
         public static List<T> ToList<T>(this IEnumerable<T> items)
         {
             return new List<T>(items);
         }
 
         /// <summary>
-        /// Warning: This is a net20 backport and not using an on the fly enumeration!.
+        /// Filters a sequence of values based on a predicate.
         /// </summary>
-        /// <typeparam name="TSource"></typeparam>
-        /// <param name="source"></param>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
+        /// <typeparam name="TSource">The type of the elements of source.</typeparam>
+        /// <param name="source">An <see cref="IEnumerable{T}"/> to filter.</param>
+        /// <param name="predicate">A function to test each element for a condition.</param>
+        /// <returns>An <see cref="IEnumerable{T}"/> that contains elements from the input sequence that satisfy the condition.</returns>
         public static IEnumerable<TSource> Where<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
             List<TSource> items = new List<TSource>();
@@ -53,12 +53,12 @@ namespace System.Linq
         }
 
         /// <summary>
-        /// Warning: This is a net20 backport and not using an on the fly enumeration!.
+        /// Filters a sequence of values based on a predicate. Each element's index is used in the logic of the predicate function.
         /// </summary>
-        /// <typeparam name="TSource"></typeparam>
-        /// <param name="source"></param>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
+        /// <typeparam name="TSource">The type of the elements of source.</typeparam>
+        /// <param name="source">An <see cref="IEnumerable{T}"/> to filter.</param>
+        /// <param name="predicate">A function to test each element for a condition.</param>
+        /// <returns>An <see cref="IEnumerable{T}"/> that contains elements from the input sequence that satisfy the condition.</returns>
         public static IEnumerable<TSource> Where<TSource>(this IEnumerable<TSource> source, Func<TSource, int, bool> predicate)
         {
             List<TSource> items = new List<TSource>();
@@ -92,16 +92,108 @@ namespace System.Linq
         }
 
         /// <summary>
-        /// Warning: This is a net20 backport and not using an on the fly enumeration!.
+        /// Computes the sum of a sequence of values.
         /// </summary>
-        /// <param name="source"></param>
-        /// <returns></returns>
+        /// <param name="source">A sequence of values to calculate the sum of.</param>
+        /// <returns>The sum of the values in the sequence.</returns>
         public static int Sum(this IEnumerable<int> source)
         {
             int result = 0;
             foreach (var item in source)
             {
                 result += item;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Computes the sum of a sequence of values.
+        /// </summary>
+        /// <param name="source">A sequence of values to calculate the sum of.</param>
+        /// <returns>The sum of the values in the sequence.</returns>
+        public static long Sum(this IEnumerable<long> source)
+        {
+            long result = 0;
+            foreach (var item in source)
+            {
+                result += item;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Returns the maximum value in a sequence of values.
+        /// </summary>
+        /// <param name="source">A sequence of values to determine the maximum value of.</param>
+        /// <returns>The maximum value in the sequence.</returns>
+        public static int Max(this IEnumerable<int> source)
+        {
+            int result = source.First();
+            foreach (var item in source)
+            {
+                if (item > result)
+                {
+                    result = item;
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Returns the maximum value in a sequence of values.
+        /// </summary>
+        /// <param name="source">A sequence of values to determine the maximum value of.</param>
+        /// <returns>The maximum value in the sequence.</returns>
+        public static long Max(this IEnumerable<long> source)
+        {
+            long result = source.First();
+            foreach (var item in source)
+            {
+                if (item > result)
+                {
+                    result = item;
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Returns the minimum value in a sequence of values.
+        /// </summary>
+        /// <param name="source">A sequence of values to determine the minimum value of.</param>
+        /// <returns>The minimum value in the sequence.</returns>
+        public static int Min(this IEnumerable<int> source)
+        {
+            int result = source.First();
+            foreach (var item in source)
+            {
+                if (item > result)
+                {
+                    result = item;
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Returns the minimum value in a sequence of values.
+        /// </summary>
+        /// <param name="source">A sequence of values to determine the minimum value of.</param>
+        /// <returns>The minimum value in the sequence.</returns>
+        public static long Min(this IEnumerable<long> source)
+        {
+            long result = source.First();
+            foreach (var item in source)
+            {
+                if (item > result)
+                {
+                    result = item;
+                }
             }
 
             return result;

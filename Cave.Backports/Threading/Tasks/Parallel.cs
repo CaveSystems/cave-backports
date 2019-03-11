@@ -30,7 +30,7 @@ namespace System.Threading.Tasks
         }
 
         /// <summary>Executes a foreach operation.</summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T">The type of elements in the <see cref="IEnumerable{T}"/>.</typeparam>
         /// <param name="concurrentTasks">The concurrent tasks.</param>
         /// <param name="items">The items.</param>
         /// <param name="action">The action.</param>
@@ -46,7 +46,7 @@ namespace System.Threading.Tasks
         }
 
         /// <summary>Executes a foreach operation in which up to <see cref="Environment.ProcessorCount"/> * 4 iterations may run in parallel.</summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T">The type of elements in the <see cref="IEnumerable{T}"/>.</typeparam>
         /// <param name="items">The items.</param>
         /// <param name="action">The action.</param>
         public static void ForEach<T>(IEnumerable<T> items, Action<T> action)

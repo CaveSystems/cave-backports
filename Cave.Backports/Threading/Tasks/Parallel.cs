@@ -1,5 +1,4 @@
-﻿#if NET40 || NET45 || NET46 || NET47 || NETSTANDARD20
-#elif NET20 || NET35 || NETSTANDARD10
+﻿#if NET20 || NET35 || NETSTANDARD10
 
 using System.Collections.Generic;
 

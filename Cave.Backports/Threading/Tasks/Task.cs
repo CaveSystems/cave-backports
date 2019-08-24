@@ -1,4 +1,4 @@
-#if NET40 || NET45 || NET46 || NET47 || NETSTANDARD10 || NETSTANDARD20
+#if NETSTANDARD10
 #elif NET35 || NET20
 
 namespace System.Threading.Tasks
@@ -114,7 +114,7 @@ namespace System.Threading.Tasks
             return -1;
         }
 
-        #region Task.Factory class
+#region Task.Factory class
 
         /// <summary>
         /// Provides a simple task starting mechanism backported from net 4.0 using the <see cref="Task.Factory.StartNew(Action, TaskCreationOptions)"/> function.
@@ -162,12 +162,12 @@ namespace System.Threading.Tasks
             }
         }
 
-        #endregion
+#endregion
 
-        #region private functionality
-        object state;
-        object action;
-        TaskCreationOptions creationOptions;
+#region private functionality
+        readonly object state;
+        readonly object action;
+        readonly TaskCreationOptions creationOptions;
         bool started = false;
 
         void Worker(object nothing = null)
@@ -218,18 +218,18 @@ namespace System.Threading.Tasks
                 Monitor.Pulse(this);
             }
         }
-        #endregion
+#endregion
 
-        #region constructor
+#region constructor
         private Task(TaskCreationOptions creationOptions, object action, object state)
         {
             this.creationOptions = creationOptions;
             this.action = action;
             this.state = state;
         }
-        #endregion
+#endregion
 
-        #region public functionality
+#region public functionality
 
         /// <summary>
         /// Waits for a task completion.
@@ -262,9 +262,9 @@ namespace System.Threading.Tasks
                 return Monitor.Wait(this, mssTimeout);
             }
         }
-        #endregion
+#endregion
 
-        #region public properties
+#region public properties
 
         /// <summary>
         /// Gets the expection thown by a task.
@@ -280,9 +280,9 @@ namespace System.Threading.Tasks
         /// Gets a value indicating whether the Task completed due to an unhandled exception.
         /// </summary>
         public bool IsFaulted => Exception != null;
-        #endregion
+#endregion
 
-        #region IDisposable Member
+#region IDisposable Member
 
         /// <summary>Releases the unmanaged resources used by this instance and optionally releases the managed resources.</summary>
         /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
@@ -298,7 +298,7 @@ namespace System.Threading.Tasks
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-        #endregion
+#endregion
     }
 }
 #else

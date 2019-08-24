@@ -1,7 +1,6 @@
 #if NET35 || NET20
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Security.Permissions;
@@ -11,17 +10,17 @@ namespace System
     /// <summary>
     /// Represents one or more errors that occur during application execution.
     /// </summary>
-    [DebuggerDisplay("Count = {InnerExceptionCount}")]
     [Serializable]
     [SecurityPermission(SecurityAction.InheritanceDemand, Flags = SecurityPermissionFlag.SerializationFormatter)]
     public class AggregateException : Exception
     {
-        ReadOnlyCollection<Exception> exceptions;
+        readonly IList<Exception> exceptions;
 
         /// <summary>Initializes a new instance of the <see cref="AggregateException"/> class.</summary>
         public AggregateException()
             : base("One ore more exceptions occured.")
         {
+            exceptions = new Exception[0];
         }
 
         /// <summary>
@@ -31,6 +30,7 @@ namespace System
         public AggregateException(params Exception[] innerExceptions)
             : this("One ore more exceptions occured.", innerExceptions)
         {
+            exceptions = innerExceptions;
         }
 
         /// <summary>
@@ -40,6 +40,7 @@ namespace System
         public AggregateException(IEnumerable<Exception> innerExceptions)
             : this("One ore more exceptions occured.", innerExceptions)
         {
+            exceptions = innerExceptions.ToList();
         }
 
         /// <summary>
@@ -49,7 +50,7 @@ namespace System
         public AggregateException(string msg)
             : base(msg)
         {
-            exceptions = new ReadOnlyCollection<Exception>(new Exception[0]);
+            exceptions = new Exception[0];
         }
 
         /// <summary>
@@ -60,7 +61,7 @@ namespace System
         public AggregateException(string msg, Exception innerException)
             : base(msg)
         {
-            exceptions = new ReadOnlyCollection<Exception>(new Exception[] { innerException });
+            exceptions = new Exception[] { innerException };
         }
 
         /// <summary>
@@ -71,7 +72,7 @@ namespace System
         public AggregateException(string msg, params Exception[] innerExceptions)
             : base(msg, (innerExceptions != null && innerExceptions.Length > 0) ? innerExceptions[0] : null)
         {
-            exceptions = new ReadOnlyCollection<Exception>(innerExceptions);
+            exceptions = innerExceptions;
         }
 
         /// <summary>
@@ -80,7 +81,7 @@ namespace System
         /// <param name="msg">The error message that explains the reason for the exception.</param>
         /// <param name="innerExceptions">The exceptions that are the cause of the current exception.</param>
         public AggregateException(string msg, IEnumerable<Exception> innerExceptions)
-            : this(msg, innerExceptions.ToArray<Exception>())
+            : this(msg, innerExceptions.ToArray())
         {
         }
 
@@ -88,7 +89,7 @@ namespace System
         /// Gets a read-only collection of the <see cref="Exception"/> instances that caused the
         /// current exception.
         /// </summary>
-        public ReadOnlyCollection<Exception> InnerExceptions => exceptions;
+        public ReadOnlyCollection<Exception> InnerExceptions => new ReadOnlyCollection<Exception>(exceptions);
 
         /// <summary>Initializes a new instance of the <see cref="AggregateException"/> class.</summary>
         /// <param name="info">The SerializationInfo.</param>
@@ -110,7 +111,7 @@ namespace System
         }
     }
 }
-#elif NET40 || NET45 || NET46 || NET47 || NETSTANDARD10 || NETSTANDARD20
+#elif NETSTANDARD10
 #else
 #error No code defined for the current framework or NETXX version define missing!
 #endif

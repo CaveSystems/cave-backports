@@ -1,5 +1,4 @@
-#if NET40 || NET45 || NET46 || NET47 || NETSTANDARD20
-#elif NETSTANDARD10 || NET35 || NET20
+#if NETSTANDARD10 || NET35 || NET20
 namespace System.Diagnostics.CodeAnalysis
 {
     /// <summary>

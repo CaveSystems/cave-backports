@@ -1,6 +1,6 @@
 ﻿#pragma warning disable SA1402 // File may only contain a single type
 
-#if NET35 || NET40 || NET45 || NET46 || NET47 || NETSTANDARD10 || NETSTANDARD20
+#if NET35 || NETSTANDARD10
 #elif NET20
 
 namespace System

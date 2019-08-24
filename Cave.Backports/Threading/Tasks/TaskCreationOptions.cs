@@ -1,4 +1,4 @@
-#if NET40 || NET45 || NET46 || NET47 || NETSTANDARD10 || NETSTANDARD20
+#if NETSTANDARD10
 #elif NET35 || NET20
 namespace System.Threading.Tasks
 {

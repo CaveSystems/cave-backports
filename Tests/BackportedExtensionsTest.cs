@@ -12,7 +12,7 @@ namespace Tests
         public void CheckAggregate()
         {
             string[] fruits = { "apple", "mango", "orange", "passionfruit", "grape" };
-            string longestName = fruits.Aggregate("banana", (longest, next) => next.Length > longest.Length ? next : longest, fruit => fruit.ToUpper());
+            string longestName = fruits.Aggregate("banana", (longest, next) => (next ?? "").Length > (longest ?? "").Length ? next : longest, fruit => fruit.ToUpper());
             Assert.AreEqual(longestName, "PASSIONFRUIT");
         }
 

@@ -1,5 +1,4 @@
-﻿using NUnit.Framework;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -14,28 +13,36 @@ namespace Tests
 #if NETSTANDARD13
             var asm = Assembly.Load(new AssemblyName(typeof(Program).AssemblyQualifiedName));
             var types = asm.DefinedTypes.ToArray();
+            Console.WriteLine("net standard 1.3");
 #else
 
             var types = typeof(Program).Assembly.GetTypes();
+            Console.WriteLine("net " + Environment.Version);
 #endif
 
             foreach (var type in types)
             {
-                var typeAttributes = type.GetCustomAttributes(typeof(TestFixtureAttribute), false);
+                var typeAttributes = type.GetCustomAttributes(typeof(TestAttribute), false);
 
 #if NETSTANDARD13
-                var instance = Activator.CreateInstance(type.BaseType);
-                var methods = type.DeclaredMethods;
                 var typeAttributesCount = typeAttributes.Count();
 #else
-                var instance = Activator.CreateInstance(type);
-                var methods = type.GetMethods();
                 var typeAttributesCount = typeAttributes.Length;
 #endif
                 if (typeAttributesCount == 0)
                 {
                     continue;
                 }
+
+#if NETSTANDARD13
+                Console.WriteLine("Create " + type.BaseType);
+                var instance = Activator.CreateInstance(type.BaseType);
+                var methods = type.DeclaredMethods;
+#else
+                Console.WriteLine("Create " + type);
+                var instance = Activator.CreateInstance(type);
+                var methods = type.GetMethods();
+#endif
 
                 foreach (var method in methods)
                 {

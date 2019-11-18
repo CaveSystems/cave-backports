@@ -23,6 +23,9 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 rem msbuild /p:Configuration=Release /p:Platform="Any CPU" documentation.shfbproj
 rem if %errorlevel% neq 0 exit /b %errorlevel%
 
+Tests\bin\Debug\net20\Tests.exe
+Tests\bin\Debug\net35\Tests.exe
+
 Tests\bin\Release\net20\Tests.exe
 Tests\bin\Release\net35\Tests.exe
-Tests\bin\Release\netstandard1.3\Tests.exe
+rem Tests\bin\Release\netstandard1.3\Tests.exe

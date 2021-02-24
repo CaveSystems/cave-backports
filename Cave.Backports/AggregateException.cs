@@ -14,14 +14,14 @@ namespace System
     [SecurityPermission(SecurityAction.InheritanceDemand, Flags = SecurityPermissionFlag.SerializationFormatter)]
     public class AggregateException : Exception
     {
-        readonly IList<Exception> exceptions;
+        readonly IList<Exception> Exceptions;
 
-        /// <summary>Initializes a new instance of the <see cref="AggregateException"/> class.</summary>
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AggregateException"/> class.
+        /// </summary>
         public AggregateException()
             : base("One ore more exceptions occured.")
-        {
-            exceptions = new Exception[0];
-        }
+            => Exceptions = new Exception[0];
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AggregateException"/> class.
@@ -29,9 +29,7 @@ namespace System
         /// <param name="innerExceptions">The exceptions that are the cause of the current exception.</param>
         public AggregateException(params Exception[] innerExceptions)
             : this("One ore more exceptions occured.", innerExceptions)
-        {
-            exceptions = innerExceptions;
-        }
+            => Exceptions = innerExceptions;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AggregateException"/> class.
@@ -39,9 +37,7 @@ namespace System
         /// <param name="innerExceptions">The exceptions that are the cause of the current exception.</param>
         public AggregateException(IEnumerable<Exception> innerExceptions)
             : this("One ore more exceptions occured.", innerExceptions)
-        {
-            exceptions = innerExceptions.ToList();
-        }
+            => Exceptions = innerExceptions.ToList();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AggregateException"/> class.
@@ -49,9 +45,7 @@ namespace System
         /// <param name="msg">The error message that explains the reason for the exception.</param>
         public AggregateException(string msg)
             : base(msg)
-        {
-            exceptions = new Exception[0];
-        }
+            => Exceptions = new Exception[0];
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AggregateException"/> class.
@@ -60,9 +54,7 @@ namespace System
         /// <param name="innerException">The inner exception.</param>
         public AggregateException(string msg, Exception innerException)
             : base(msg)
-        {
-            exceptions = new Exception[] { innerException };
-        }
+            => Exceptions = new Exception[] { innerException };
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AggregateException"/> class.
@@ -71,9 +63,7 @@ namespace System
         /// <param name="innerExceptions">The exceptions that are the cause of the current exception.</param>
         public AggregateException(string msg, params Exception[] innerExceptions)
             : base(msg, (innerExceptions != null && innerExceptions.Length > 0) ? innerExceptions[0] : null)
-        {
-            exceptions = innerExceptions;
-        }
+            => Exceptions = innerExceptions;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AggregateException"/> class.
@@ -86,12 +76,13 @@ namespace System
         }
 
         /// <summary>
-        /// Gets a read-only collection of the <see cref="Exception"/> instances that caused the
-        /// current exception.
+        /// Gets a read-only collection of the <see cref="Exception"/> instances that caused the current exception.
         /// </summary>
-        public ReadOnlyCollection<Exception> InnerExceptions => new ReadOnlyCollection<Exception>(exceptions);
+        public ReadOnlyCollection<Exception> InnerExceptions => new ReadOnlyCollection<Exception>(Exceptions);
 
-        /// <summary>Initializes a new instance of the <see cref="AggregateException"/> class.</summary>
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AggregateException"/> class.
+        /// </summary>
         /// <param name="info">The SerializationInfo.</param>
         /// <param name="context">The StreamingContext.</param>
         protected AggregateException(SerializationInfo info, StreamingContext context)
@@ -102,13 +93,10 @@ namespace System
         /// <summary>
         /// Populates a SerializationInfo with the data needed to serialize the target object.
         /// </summary>
-        /// <param name="info">The SerializationInfo to populate with data. </param>
+        /// <param name="info">The SerializationInfo to populate with data.</param>
         /// <param name="context">The destination (see StreamingContext) for this serialization.</param>
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.SerializationFormatter)]
-        public override void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            base.GetObjectData(info, context);
-        }
+        public override void GetObjectData(SerializationInfo info, StreamingContext context) => base.GetObjectData(info, context);
     }
 }
 #elif NETSTANDARD10

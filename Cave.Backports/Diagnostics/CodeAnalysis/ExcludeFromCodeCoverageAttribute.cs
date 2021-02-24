@@ -1,4 +1,5 @@
 #if NETSTANDARD10 || NET35 || NET20
+
 namespace System.Diagnostics.CodeAnalysis
 {
     /// <summary>
@@ -15,6 +16,7 @@ namespace System.Diagnostics.CodeAnalysis
         }
     }
 }
+
 #else
 #error No code defined for the current framework or NETXX version define missing!
 #endif

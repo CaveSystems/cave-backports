@@ -7,24 +7,16 @@ namespace Tests
     [Test]
     public class BackportedExtensionsTest
     {
-        static string Select(string longest, string next)
-        {
-            if (longest == null) return next;
-            if (next.Length > longest.Length)
-            {
-                return next;
-            }
-            return longest;
-        }
+        static string Select(string longest, string next) => longest == null || next.Length > longest.Length ? next : longest;
 
         [Test]
         public void CheckAggregate()
         {
             string[] fruits = { "apple", "mango", "orange", "passionfruit", "grape" };
 #if NET20
-            string longestName = BackportedExtensions.Aggregate(fruits, "banana", Select, fruit => fruit.ToUpper());
+            var longestName = BackportedExtensions.Aggregate(fruits, "banana", Select, fruit => fruit.ToUpper());
 #else
-            string longestName = Enumerable.Aggregate(fruits, "banana", Select, fruit => fruit.ToUpper());
+            var longestName = Enumerable.Aggregate(fruits, "banana", Select, fruit => fruit.ToUpper());
 #endif
             Assert.AreEqual(longestName, "PASSIONFRUIT");
         }

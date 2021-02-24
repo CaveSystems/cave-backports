@@ -19,7 +19,7 @@ namespace System.Threading.Tasks
                 throw new ArgumentNullException("Tasks");
             }
 
-            foreach (Task task in tasks)
+            foreach (var task in tasks)
             {
                 task.Wait();
             }
@@ -44,10 +44,10 @@ namespace System.Threading.Tasks
                 throw new ArgumentNullException("Tasks");
             }
 
-            DateTime timeout = DateTime.UtcNow + new TimeSpan(TimeSpan.TicksPerMillisecond * timeoutMillis);
-            foreach (Task task in tasks)
+            var timeout = DateTime.UtcNow + new TimeSpan(TimeSpan.TicksPerMillisecond * timeoutMillis);
+            foreach (var task in tasks)
             {
-                TimeSpan wait = timeout - DateTime.UtcNow;
+                var wait = timeout - DateTime.UtcNow;
                 if (wait < TimeSpan.Zero && !task.IsCompleted)
                 {
                     return false;
@@ -70,12 +70,12 @@ namespace System.Threading.Tasks
         {
             if (tasks == null)
             {
-                throw new ArgumentNullException("Tasks");
+                throw new ArgumentNullException(nameof(tasks));
             }
 
             while (true)
             {
-                for (int i = 0; i < tasks.Length; i++)
+                for (var i = 0; i < tasks.Length; i++)
                 {
                     if (tasks[i].IsCompleted)
                     {
@@ -96,13 +96,13 @@ namespace System.Threading.Tasks
         {
             if (tasks == null)
             {
-                throw new ArgumentNullException("Tasks");
+                throw new ArgumentNullException(nameof(tasks));
             }
 
-            DateTime timeout = DateTime.UtcNow + new TimeSpan(timeoutMillis * TimeSpan.TicksPerMillisecond);
+            var timeout = DateTime.UtcNow + new TimeSpan(timeoutMillis * TimeSpan.TicksPerMillisecond);
             while (DateTime.UtcNow <= timeout)
             {
-                for (int i = 0; i < tasks.Length; i++)
+                for (var i = 0; i < tasks.Length; i++)
                 {
                     if (tasks[i].IsCompleted)
                     {
@@ -114,7 +114,7 @@ namespace System.Threading.Tasks
             return -1;
         }
 
-#region Task.Factory class
+        #region Task.Factory class
 
         /// <summary>
         /// Provides a simple task starting mechanism backported from net 4.0 using the <see cref="Task.Factory.StartNew(Action, TaskCreationOptions)"/> function.
@@ -129,7 +129,7 @@ namespace System.Threading.Tasks
             /// <returns>Returns a new <see cref="Task"/> instance.</returns>
             public static Task StartNew(Action action, TaskCreationOptions options = TaskCreationOptions.None)
             {
-                Task task = new Task(options, action, null);
+                var task = new Task(options, action, null);
                 ThreadPool.QueueUserWorkItem(task.Worker, action);
                 return task;
             }
@@ -143,7 +143,7 @@ namespace System.Threading.Tasks
             /// <returns>Returns a new <see cref="Task"/> instance.</returns>
             public static Task StartNew(Action<object> action, object state, TaskCreationOptions options = TaskCreationOptions.None)
             {
-                Task task = new Task(options, action, state);
+                var task = new Task(options, action, state);
                 ThreadPool.QueueUserWorkItem(task.Worker, action);
                 return task;
             }
@@ -156,28 +156,26 @@ namespace System.Threading.Tasks
             /// <param name="state">An object containing data to be used by the action delegate.</param>
             /// <param name="options">LongRunning spawns a new seperate Thread.</param>
             /// <returns>Returns a new <see cref="Task"/> instance.</returns>
-            public static Task StartNew<T>(Action<T> action, T state, TaskCreationOptions options = TaskCreationOptions.None)
-            {
-                return StartNew((object o) => action((T)o), state, options);
-            }
+            public static Task StartNew<T>(Action<T> action, T state, TaskCreationOptions options = TaskCreationOptions.None) => StartNew((object o) => action((T)o), state, options);
         }
 
-#endregion
+        #endregion Task.Factory class
 
-#region private functionality
-        readonly object state;
-        readonly object action;
-        readonly TaskCreationOptions creationOptions;
+        #region private functionality
+
+        readonly object State;
+        readonly object Action;
+        readonly TaskCreationOptions CreationOptions;
         bool started = false;
 
         void Worker(object nothing = null)
         {
-            object action = this.action;
+            var action = Action;
 
             // spawn a new seperate thread for long running threads
-            if ((creationOptions == TaskCreationOptions.LongRunning) && Thread.CurrentThread.IsThreadPoolThread)
+            if ((CreationOptions == TaskCreationOptions.LongRunning) && Thread.CurrentThread.IsThreadPoolThread)
             {
-                Thread thread = new Thread(Worker)
+                var thread = new Thread(Worker)
                 {
                     IsBackground = true,
                 };
@@ -203,7 +201,7 @@ namespace System.Threading.Tasks
                 {
                     if (action is Action<object> a)
                     {
-                        a(state);
+                        a(State);
                         return;
                     }
                 }
@@ -218,18 +216,21 @@ namespace System.Threading.Tasks
                 Monitor.Pulse(this);
             }
         }
-#endregion
 
-#region constructor
+        #endregion private functionality
+
+        #region constructor
+
         private Task(TaskCreationOptions creationOptions, object action, object state)
         {
-            this.creationOptions = creationOptions;
-            this.action = action;
-            this.state = state;
+            this.CreationOptions = creationOptions;
+            Action = action;
+            State = state;
         }
-#endregion
 
-#region public functionality
+        #endregion constructor
+
+        #region public functionality
 
         /// <summary>
         /// Waits for a task completion.
@@ -262,9 +263,10 @@ namespace System.Threading.Tasks
                 return Monitor.Wait(this, mssTimeout);
             }
         }
-#endregion
 
-#region public properties
+        #endregion public functionality
+
+        #region public properties
 
         /// <summary>
         /// Gets the expection thown by a task.
@@ -280,11 +282,14 @@ namespace System.Threading.Tasks
         /// Gets a value indicating whether the Task completed due to an unhandled exception.
         /// </summary>
         public bool IsFaulted => Exception != null;
-#endregion
 
-#region IDisposable Member
+        #endregion public properties
 
-        /// <summary>Releases the unmanaged resources used by this instance and optionally releases the managed resources.</summary>
+        #region IDisposable Member
+
+        /// <summary>
+        /// Releases the unmanaged resources used by this instance and optionally releases the managed resources.
+        /// </summary>
         /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
         {
@@ -298,7 +303,8 @@ namespace System.Threading.Tasks
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-#endregion
+
+        #endregion IDisposable Member
     }
 }
 #else

@@ -1,5 +1,3 @@
-#pragma warning disable SA1402 // File may only contain a single type
-
 #if NET35 || NETSTANDARD10
 #elif NET20
 namespace System
@@ -27,5 +25,3 @@ namespace System
 #else
 #error No code defined for the current framework or NETXX version define missing!
 #endif
-
-#pragma warning restore SA1402 // File may only contain a single type

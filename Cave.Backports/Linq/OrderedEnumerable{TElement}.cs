@@ -7,14 +7,14 @@ namespace System.Linq
 {
     sealed class OrderedEnumerable<TElement> : IOrderedEnumerable<TElement>
     {
-        readonly IEnumerable<TElement> elements;
+        readonly IEnumerable<TElement> Elements;
 
-        public OrderedEnumerable(IEnumerable<TElement> elements) => this.elements = elements;
+        public OrderedEnumerable(IEnumerable<TElement> elements) => this.Elements = elements;
 
         public IOrderedEnumerable<TElement> CreateOrderedEnumerable<TKey>(Func<TElement, TKey> keySelector, IComparer<TKey> comparer, bool descending)
         {
             var dict = new SortedDictionary<TKey, TElement>(comparer);
-            foreach (var element in elements)
+            foreach (var element in Elements)
             {
                 dict.Add(keySelector(element), element);
             }
@@ -27,9 +27,9 @@ namespace System.Linq
             return new OrderedEnumerable<TElement>(sorted);
         }
 
-        public IEnumerator<TElement> GetEnumerator() => elements.GetEnumerator();
+        public IEnumerator<TElement> GetEnumerator() => Elements.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() => elements.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => Elements.GetEnumerator();
     }
 }
 

@@ -19,89 +19,89 @@ namespace System.Threading.Tasks
         /// <param name="action">The delegate that is invoked once per iteration.</param>
         public static void For(int fromInclusive, int toExclusive, Action<int> action)
         {
-            using (Runner<int> instance = new Runner<int>(Environment.ProcessorCount << 2, action))
+            using var instance = new Runner<int>(Environment.ProcessorCount << 2, action);
+            for (var i = fromInclusive; i < toExclusive; i++)
             {
-                for (int i = fromInclusive; i < toExclusive; i++)
-                {
-                    instance.Start(i);
-                }
+                instance.Start(i);
             }
         }
 
-        /// <summary>Executes a foreach operation.</summary>
+        /// <summary>
+        /// Executes a foreach operation.
+        /// </summary>
         /// <typeparam name="T">The type of elements in the <see cref="IEnumerable{T}"/>.</typeparam>
         /// <param name="concurrentTasks">The concurrent tasks.</param>
         /// <param name="items">The items.</param>
         /// <param name="action">The action.</param>
         public static void ForEach<T>(int concurrentTasks, IEnumerable<T> items, Action<T> action)
         {
-            using (Runner<T> instance = new Runner<T>(concurrentTasks, action))
+            using var instance = new Runner<T>(concurrentTasks, action);
+            foreach (var item in items)
             {
-                foreach (T item in items)
-                {
-                    instance.Start(item);
-                }
+                instance.Start(item);
             }
         }
 
-        /// <summary>Executes a foreach operation in which up to <see cref="Environment.ProcessorCount"/> * 4 iterations may run in parallel.</summary>
+        /// <summary>
+        /// Executes a foreach operation in which up to <see cref="Environment.ProcessorCount"/> * 4 iterations may run in parallel.
+        /// </summary>
         /// <typeparam name="T">The type of elements in the <see cref="IEnumerable{T}"/>.</typeparam>
         /// <param name="items">The items.</param>
         /// <param name="action">The action.</param>
         public static void ForEach<T>(IEnumerable<T> items, Action<T> action)
         {
-            using (Runner<T> instance = new Runner<T>(Environment.ProcessorCount << 2, action))
+            using var instance = new Runner<T>(Environment.ProcessorCount << 2, action);
+            foreach (var item in items)
             {
-                foreach (T item in items)
-                {
-                    instance.Start(item);
-                }
+                instance.Start(item);
             }
         }
-        #endregion
+
+        #endregion static class
+
         class Runner<T> : IDisposable
         {
-            readonly int concurrentTasks;
-            readonly List<Exception> exceptions = new List<Exception>();
-            readonly Action<T> action;
-            readonly AutoResetEvent completed = new AutoResetEvent(false);
+            readonly int ConcurrentTasks;
+            readonly List<Exception> Exceptions = new List<Exception>();
+            readonly Action<T> Action;
+            readonly AutoResetEvent Completed = new AutoResetEvent(false);
             int currentTasks;
 
             public Runner(int concurrentTasks, Action<T> action)
             {
-                this.concurrentTasks = concurrentTasks;
-                this.action = action;
+                this.ConcurrentTasks = concurrentTasks;
+                this.Action = action;
             }
 
             void Run(object item)
             {
                 try
                 {
-                    action((T)item);
+                    Action((T)item);
                 }
                 catch (Exception ex)
                 {
-                    exceptions.Add(ex);
+                    Exceptions.Add(ex);
                     throw;
                 }
                 finally
                 {
                     Interlocked.Decrement(ref currentTasks);
-                    completed.Set();
+                    Completed.Set();
                 }
             }
 
             internal void Start(T item)
             {
                 Interlocked.Increment(ref currentTasks);
-                while (currentTasks >= concurrentTasks)
+                while (currentTasks >= ConcurrentTasks)
                 {
-                    completed.WaitOne();
+                    Completed.WaitOne();
                 }
 
-                if (exceptions.Count > 0)
+                if (Exceptions.Count > 0)
                 {
-                    throw new AggregateException(exceptions.ToArray());
+                    throw new AggregateException(Exceptions.ToArray());
                 }
 #if NETSTANDARD10
                 Task.Factory.StartNew(Run, item, TaskCreationOptions.None);
@@ -114,9 +114,9 @@ namespace System.Threading.Tasks
             {
                 while (currentTasks > 0)
                 {
-                    completed.WaitOne();
+                    Completed.WaitOne();
                 }
-                (completed as IDisposable)?.Dispose();
+                (Completed as IDisposable)?.Dispose();
             }
         }
     }

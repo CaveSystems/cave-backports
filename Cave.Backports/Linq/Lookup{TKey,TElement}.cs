@@ -7,35 +7,35 @@ namespace System.Linq
 {
     public class Lookup<TKey, TElement> : IEnumerable<IGrouping<TKey, TElement>>, ILookup<TKey, TElement>
     {
-        readonly IGrouping<TKey, TElement> defaultGroup;
-        readonly Dictionary<TKey, IGrouping<TKey, TElement>> groups;
+        readonly IGrouping<TKey, TElement> DefaultGroup;
+        readonly Dictionary<TKey, IGrouping<TKey, TElement>> Groups;
 
         internal Lookup(Dictionary<TKey, List<TElement>> lookup, IEnumerable<TElement> defaultKeyElements)
         {
-            groups = new Dictionary<TKey, IGrouping<TKey, TElement>>(lookup.Comparer);
+            Groups = new Dictionary<TKey, IGrouping<TKey, TElement>>(lookup.Comparer);
             foreach (var item in lookup)
             {
-                groups.Add(item.Key, new Grouping<TKey, TElement>(item.Key, item.Value));
+                Groups.Add(item.Key, new Grouping<TKey, TElement>(item.Key, item.Value));
             }
             if (defaultKeyElements != null)
             {
-                defaultGroup = new Grouping<TKey, TElement>(default, defaultKeyElements);
+                DefaultGroup = new Grouping<TKey, TElement>(default, defaultKeyElements);
             }
         }
 
-        public int Count => (defaultGroup == null) ? groups.Count : groups.Count + 1;
+        public int Count => (DefaultGroup == null) ? Groups.Count : Groups.Count + 1;
 
         public IEnumerable<TElement> this[TKey key]
         {
             get
             {
-                if (key == null && defaultGroup != null)
+                if (key == null && DefaultGroup != null)
                 {
-                    return defaultGroup;
+                    return DefaultGroup;
                 }
                 else if (key != null)
                 {
-                    if (groups.TryGetValue(key, out IGrouping<TKey, TElement> group))
+                    if (Groups.TryGetValue(key, out var group))
                     {
                         return group;
                     }
@@ -46,38 +46,38 @@ namespace System.Linq
 
         public IEnumerable<TResult> ApplyResultSelector<TResult>(Func<TKey, IEnumerable<TElement>, TResult> resultSelector)
         {
-            if (defaultGroup != null)
+            if (DefaultGroup != null)
             {
-                yield return resultSelector(defaultGroup.Key, defaultGroup);
+                yield return resultSelector(DefaultGroup.Key, DefaultGroup);
             }
-            foreach (var group in groups.Values)
+            foreach (var group in Groups.Values)
             {
                 yield return resultSelector(group.Key, group);
             }
         }
 
-        public bool Contains(TKey key) => (key == null) ? defaultGroup != null : groups.ContainsKey(key);
+        public bool Contains(TKey key) => (key == null) ? DefaultGroup != null : Groups.ContainsKey(key);
 
         public bool TryGetGroup(TKey key, out IGrouping<TKey, TElement> group)
         {
             if (key == null)
             {
-                group = defaultGroup;
+                group = DefaultGroup;
                 return group != null;
             }
             else
             {
-                return groups.TryGetValue(key, out group);
+                return Groups.TryGetValue(key, out group);
             }
         }
 
         public IEnumerator<IGrouping<TKey, TElement>> GetEnumerator()
         {
-            if (defaultGroup != null)
+            if (DefaultGroup != null)
             {
-                yield return defaultGroup;
+                yield return DefaultGroup;
             }
-            foreach (var group in groups.Values)
+            foreach (var group in Groups.Values)
             {
                 yield return group;
             }

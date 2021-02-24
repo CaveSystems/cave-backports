@@ -13,7 +13,7 @@ namespace System.Linq
 
         public static TResult Aggregate<TSource, TAccumulate, TResult>(this IEnumerable<TSource> source, TAccumulate seed, Func<TAccumulate, TSource, TAccumulate> func, Func<TAccumulate, TResult> resultSelector)
         {
-            bool empty = true;
+            var empty = true;
             TAccumulate accu = default;
             foreach (var item in source)
             {
@@ -34,24 +34,20 @@ namespace System.Linq
         public static TSource Aggregate<TSource>(this IEnumerable<TSource> source, Func<TSource, TSource, TSource> func)
             => Aggregate(source, default, func, (a) => a);
 
-        #endregion
+        #endregion Aggregate
 
         #region All
 
         public static bool All<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate) => !source.Any((i) => !predicate(i));
 
-        #endregion
+        #endregion All
 
         #region Any
 
         public static bool Any<TSource>(this IEnumerable<TSource> source)
         {
-            foreach (var item in source)
-            {
-                return true;
-            }
-
-            return false;
+            using var enumerator = source.GetEnumerator();
+            return enumerator.MoveNext();
         }
 
         public static bool Any<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
@@ -66,13 +62,13 @@ namespace System.Linq
             return false;
         }
 
-        #endregion
+        #endregion Any
 
         #region AsEnumerable
 
         public static IEnumerable<TSource> AsEnumerable<TSource>(this IEnumerable<TSource> source) => source;
 
-        #endregion
+        #endregion AsEnumerable
 
         #region Average
 
@@ -208,7 +204,8 @@ namespace System.Linq
 
         public static decimal? Average<TSource>(this IEnumerable<TSource> source, Func<TSource, decimal?> selector)
             => CalcAverageWithSelector<TSource, decimal, decimal?, decimal?>(source, (total, value) => checked(total + value ?? 0), (total, count) => total / count, selector);
-        #endregion
+
+        #endregion Average
 
         #region Cast
 
@@ -228,7 +225,7 @@ namespace System.Linq
             return Iterator();
         }
 
-        #endregion
+        #endregion Cast
 
         #region Concat
 
@@ -236,11 +233,11 @@ namespace System.Linq
         {
             IEnumerable<TSource> Iterator()
             {
-                foreach (TSource element in first)
+                foreach (var element in first)
                 {
                     yield return element;
                 }
-                foreach (TSource element in second)
+                foreach (var element in second)
                 {
                     yield return element;
                 }
@@ -248,7 +245,7 @@ namespace System.Linq
             return Iterator();
         }
 
-        #endregion
+        #endregion Concat
 
         #region Contains
 
@@ -270,7 +267,7 @@ namespace System.Linq
             return source.Any((i) => comparer.Equals(i, value));
         }
 
-        #endregion
+        #endregion Contains
 
         #region Count
 
@@ -281,7 +278,7 @@ namespace System.Linq
                 return collection.Count;
             }
 
-            int counter = 0;
+            var counter = 0;
             using (var enumerator = source.GetEnumerator())
             {
                 while (enumerator.MoveNext())
@@ -298,7 +295,7 @@ namespace System.Linq
 
         public static int Count<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            int counter = 0;
+            var counter = 0;
             foreach (var element in source)
             {
                 if (predicate(element))
@@ -312,7 +309,7 @@ namespace System.Linq
             return counter;
         }
 
-        #endregion
+        #endregion Count
 
         #region DefaultIfEmpty
 
@@ -322,8 +319,8 @@ namespace System.Linq
         {
             IEnumerable<TSource> Iterator()
             {
-                bool empty = true;
-                foreach (TSource item in source)
+                var empty = true;
+                foreach (var item in source)
                 {
                     empty = false;
                     yield return item;
@@ -337,7 +334,7 @@ namespace System.Linq
             return Iterator();
         }
 
-        #endregion
+        #endregion DefaultIfEmpty
 
         #region Distinct
 
@@ -364,7 +361,7 @@ namespace System.Linq
             return Iterator();
         }
 
-        #endregion
+        #endregion Distinct
 
         #region ElementAt
 
@@ -372,7 +369,7 @@ namespace System.Linq
         {
             if (index < 0)
             {
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException(nameof(index));
             }
             if (source is IList<TSource> list)
             {
@@ -390,22 +387,22 @@ namespace System.Linq
         }
 
         public static TSource ElementAt<TSource>(this IEnumerable<TSource> source, int index)
-            => source.ElementAt(index, () => throw new ArgumentOutOfRangeException());
+            => source.ElementAt(index, () => throw new ArgumentOutOfRangeException(nameof(index)));
 
-        #endregion
+        #endregion ElementAt
 
         #region ElementAtOrDefault
 
         public static TSource ElementAtOrDefault<TSource>(this IEnumerable<TSource> source, int index)
             => source.ElementAt(index, () => default);
 
-        #endregion
+        #endregion ElementAtOrDefault
 
         #region Empty
 
         public static IEnumerable<TResult> Empty<TResult>() => new TResult[0];
 
-        #endregion
+        #endregion Empty
 
         #region Except
 
@@ -437,7 +434,7 @@ namespace System.Linq
             return Iterator();
         }
 
-        #endregion
+        #endregion Except
 
         #region First
 
@@ -459,7 +456,7 @@ namespace System.Linq
         public static TSource First<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
             => First(source, predicate, ThrowSequenceEmpty<TSource>);
 
-        #endregion
+        #endregion First
 
         #region FirstOrDefault
 
@@ -469,7 +466,7 @@ namespace System.Linq
         public static TSource FirstOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
             => First(source, predicate, () => default);
 
-        #endregion
+        #endregion FirstOrDefault
 
         #region GroupBy
 
@@ -479,9 +476,9 @@ namespace System.Linq
             {
                 var groups = new Dictionary<TKey, List<TSource>>(comparer);
                 List<TSource> defaultList = null;
-                foreach (TSource element in source)
+                foreach (var element in source)
                 {
-                    TKey key = keySelector(element);
+                    var key = keySelector(element);
                     if (key == null)
                     {
                         if (defaultList == null)
@@ -492,7 +489,7 @@ namespace System.Linq
                     }
                     else
                     {
-                        if (!groups.TryGetValue(key, out List<TSource> group))
+                        if (!groups.TryGetValue(key, out var group))
                         {
                             group = new List<TSource>();
                             groups.Add(key, group);
@@ -521,10 +518,10 @@ namespace System.Linq
             {
                 var groups = new Dictionary<TKey, List<TElement>>(comparer);
                 List<TElement> defaultList = null;
-                foreach (TSource item in source)
+                foreach (var item in source)
                 {
-                    TKey key = keySelector(item);
-                    TElement element = elementSelector(item);
+                    var key = keySelector(item);
+                    var element = elementSelector(item);
                     if (key == null)
                     {
                         if (defaultList == null)
@@ -535,7 +532,7 @@ namespace System.Linq
                     }
                     else
                     {
-                        if (!groups.TryGetValue(key, out List<TElement> group))
+                        if (!groups.TryGetValue(key, out var group))
                         {
                             group = new List<TElement>();
                             groups.Add(key, group);
@@ -566,7 +563,7 @@ namespace System.Linq
             IEnumerable<TResult> Iterator()
             {
                 var groups = GroupBy(source, keySelector, elementSelector, comparer);
-                foreach (IGrouping<TKey, TElement> group in groups)
+                foreach (var group in groups)
                 {
                     yield return resultSelector(group.Key, group);
                 }
@@ -579,7 +576,7 @@ namespace System.Linq
             IEnumerable<TResult> Iterator()
             {
                 var groups = GroupBy(source, keySelector, comparer);
-                foreach (IGrouping<TKey, TSource> group in groups)
+                foreach (var group in groups)
                 {
                     yield return resultSelector(group.Key, group);
                 }
@@ -590,7 +587,7 @@ namespace System.Linq
         public static IEnumerable<TResult> GroupBy<TSource, TKey, TResult>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TKey, IEnumerable<TSource>, TResult> resultSelector)
             => GroupBy(source, keySelector, resultSelector, null);
 
-        #endregion
+        #endregion GroupBy
 
         #region GroupJoin
 
@@ -602,9 +599,9 @@ namespace System.Linq
             IEnumerable<TResult> Iterator()
             {
                 var innerKeys = ToLookup(inner, innerKeySelector, comparer);
-                foreach (TOuter element in outer)
+                foreach (var element in outer)
                 {
-                    TKey outerKey = outerKeySelector(element);
+                    var outerKey = outerKeySelector(element);
                     if (outerKey != null && innerKeys.Contains(outerKey))
                     {
                         yield return resultSelector(element, innerKeys[outerKey]);
@@ -623,7 +620,7 @@ namespace System.Linq
             return Iterator();
         }
 
-        #endregion
+        #endregion GroupJoin
 
         #region Intersect
 
@@ -636,11 +633,11 @@ namespace System.Linq
             IEnumerable<TSource> Iterator()
             {
                 var items = new Dictionary<TSource, object>(comparer);
-                foreach (TSource item in second)
+                foreach (var item in second)
                 {
                     items.Add(item, null);
                 }
-                foreach (TSource element in first)
+                foreach (var element in first)
                 {
                     if (items.Remove(element))
                     {
@@ -654,7 +651,7 @@ namespace System.Linq
         public static IEnumerable<TSource> Intersect<TSource>(this IEnumerable<TSource> first, IEnumerable<TSource> second)
             => Intersect(first, second, null);
 
-        #endregion
+        #endregion Intersect
 
         #region Join
 
@@ -667,12 +664,12 @@ namespace System.Linq
             IEnumerable<TResult> Iterator()
             {
                 var innerKeys = ToLookup(inner, innerKeySelector, comparer);
-                foreach (TOuter element in outer)
+                foreach (var element in outer)
                 {
-                    TKey outerKey = outerKeySelector(element);
+                    var outerKey = outerKeySelector(element);
                     if (outerKey != null && innerKeys.Contains(outerKey))
                     {
-                        foreach (TInner innerElement in innerKeys[outerKey])
+                        foreach (var innerElement in innerKeys[outerKey])
                         {
                             yield return resultSelector(element, innerElement);
                         }
@@ -685,7 +682,7 @@ namespace System.Linq
         public static IEnumerable<TResult> Join<TOuter, TInner, TKey, TResult>(this IEnumerable<TOuter> outer, IEnumerable<TInner> inner, Func<TOuter, TKey> outerKeySelector, Func<TInner, TKey> innerKeySelector, Func<TOuter, TInner, TResult> resultSelector)
             => outer.Join(inner, outerKeySelector, innerKeySelector, resultSelector, null);
 
-        #endregion
+        #endregion Join
 
         #region Last
 
@@ -722,14 +719,14 @@ namespace System.Linq
         public static TSource Last<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
             => Last(source, predicate, ThrowSequenceEmpty<TSource>);
 
-        #endregion
+        #endregion Last
 
         #region LastOrDefault
 
         public static TSource LastOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
             => Last(source, predicate, default);
 
-        #endregion
+        #endregion LastOrDefault
 
         #region LongCount
 
@@ -745,7 +742,7 @@ namespace System.Linq
         public static long LongCount<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
             long counter = 0;
-            foreach (TSource item in source)
+            foreach (var item in source)
             {
                 if (predicate?.Invoke(item) ?? true)
                 {
@@ -758,13 +755,13 @@ namespace System.Linq
             return counter;
         }
 
-        #endregion
+        #endregion LongCount
 
         #region Max
 
         static TResult CalcMinOrMax<TSource, TResult>(this IEnumerable<TSource> source, Func<TResult, TResult, TResult> func, Func<TResult> defaultValue, Func<TSource, TResult> selector)
         {
-            bool empty = true;
+            var empty = true;
             TResult max = default;
             foreach (var element in source)
             {
@@ -864,7 +861,7 @@ namespace System.Linq
         public static float? Max<TSource>(this IEnumerable<TSource> source, Func<TSource, float?> selector)
             => CalcMinOrMax(source, (element, max) => element > max ? element : max, () => null, selector);
 
-        #endregion
+        #endregion Max
 
         #region Min
 
@@ -941,7 +938,7 @@ namespace System.Linq
         public static float? Min<TSource>(this IEnumerable<TSource> source, Func<TSource, float?> selector)
             => CalcMinOrMax(source, (element, max) => element < max ? element : max, () => null, selector);
 
-        #endregion
+        #endregion Min
 
         #region OfType
 
@@ -949,18 +946,18 @@ namespace System.Linq
         {
             IEnumerable<TResult> Iterator()
             {
-                foreach (object element in source)
+                foreach (var element in source)
                 {
-                    if (element is TResult)
+                    if (element is TResult result)
                     {
-                        yield return (TResult)element;
+                        yield return result;
                     }
                 }
             }
             return Iterator();
         }
 
-        #endregion
+        #endregion OfType
 
         #region OrderBy
 
@@ -970,7 +967,7 @@ namespace System.Linq
         public static IOrderedEnumerable<TSource> OrderBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, IComparer<TKey> comparer)
             => new OrderedEnumerable<TSource>(source).CreateOrderedEnumerable(keySelector, comparer, false);
 
-        #endregion
+        #endregion OrderBy
 
         #region OrderByDescending
 
@@ -980,7 +977,7 @@ namespace System.Linq
         public static IOrderedEnumerable<TSource> OrderByDescending<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, IComparer<TKey> comparer)
             => new OrderedEnumerable<TSource>(source).CreateOrderedEnumerable(keySelector, comparer, true);
 
-        #endregion
+        #endregion OrderByDescending
 
         #region Range
 
@@ -993,8 +990,8 @@ namespace System.Linq
 
             IEnumerable<int> Iterator()
             {
-                int n = start;
-                for (int i = 0; i < count; i++, n = checked(n + 1))
+                var n = start;
+                for (var i = 0; i < count; i++, n = checked(n + 1))
                 {
                     yield return n;
                 }
@@ -1003,7 +1000,7 @@ namespace System.Linq
             return Iterator();
         }
 
-        #endregion
+        #endregion Range
 
         #region Repeat
 
@@ -1016,7 +1013,7 @@ namespace System.Linq
 
             IEnumerable<TResult> Iterator()
             {
-                for (int i = 0; i < count; i++)
+                for (var i = 0; i < count; i++)
                 {
                     yield return element;
                 }
@@ -1025,7 +1022,7 @@ namespace System.Linq
             return Iterator();
         }
 
-        #endregion
+        #endregion Repeat
 
         #region Reverse
 
@@ -1036,7 +1033,7 @@ namespace System.Linq
             return list;
         }
 
-        #endregion
+        #endregion Reverse
 
         #region Select
 
@@ -1056,8 +1053,8 @@ namespace System.Linq
         {
             IEnumerable<TResult> Iterator()
             {
-                int counter = 0;
-                foreach (TSource element in source)
+                var counter = 0;
+                foreach (var element in source)
                 {
                     yield return selector(element, counter);
                     counter++;
@@ -1066,7 +1063,7 @@ namespace System.Linq
             return Iterator();
         }
 
-        #endregion
+        #endregion Select
 
         #region SelectMany
 
@@ -1074,9 +1071,9 @@ namespace System.Linq
         {
             IEnumerable<TResult> Iterator()
             {
-                foreach (TSource element in source)
+                foreach (var element in source)
                 {
-                    foreach (TResult item in selector(element))
+                    foreach (var item in selector(element))
                     {
                         yield return item;
                     }
@@ -1089,10 +1086,10 @@ namespace System.Linq
         {
             IEnumerable<TResult> Iterator()
             {
-                int counter = 0;
-                foreach (TSource element in source)
+                var counter = 0;
+                foreach (var element in source)
                 {
-                    foreach (TResult item in selector(element, counter))
+                    foreach (var item in selector(element, counter))
                     {
                         yield return item;
                     }
@@ -1106,9 +1103,9 @@ namespace System.Linq
         {
             IEnumerable<TResult> Iterator()
             {
-                foreach (TSource element in source)
+                foreach (var element in source)
                 {
-                    foreach (TCollection collection in collectionSelector(element))
+                    foreach (var collection in collectionSelector(element))
                     {
                         yield return resultSelector(element, collection);
                     }
@@ -1121,10 +1118,10 @@ namespace System.Linq
         {
             IEnumerable<TResult> Iterator()
             {
-                int counter = 0;
-                foreach (TSource element in source)
+                var counter = 0;
+                foreach (var element in source)
                 {
-                    foreach (TCollection collection in collectionSelector(element, counter++))
+                    foreach (var collection in collectionSelector(element, counter++))
                     {
                         yield return resultSelector(element, collection);
                     }
@@ -1133,7 +1130,7 @@ namespace System.Linq
             return Iterator();
         }
 
-        #endregion
+        #endregion SelectMany
 
         #region Single
 
@@ -1168,7 +1165,7 @@ namespace System.Linq
         public static TSource Single<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
              => Single(source, predicate, () => throw new InvalidOperationException("No element satisfies the condition in predicate."));
 
-        #endregion
+        #endregion Single
 
         #region SingleOrDefault
 
@@ -1178,7 +1175,7 @@ namespace System.Linq
         public static TSource SingleOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
             => Single(source, predicate, () => default);
 
-        #endregion
+        #endregion SingleOrDefault
 
         #region Skip
 
@@ -1186,25 +1183,23 @@ namespace System.Linq
         {
             IEnumerable<TSource> Iterator()
             {
-                using (var enumerator = source.GetEnumerator())
+                using var enumerator = source.GetEnumerator();
+                while (count-- > 0)
                 {
-                    while (count-- > 0)
+                    if (!enumerator.MoveNext())
                     {
-                        if (!enumerator.MoveNext())
-                        {
-                            yield break;
-                        }
+                        yield break;
                     }
-                    while (enumerator.MoveNext())
-                    {
-                        yield return enumerator.Current;
-                    }
+                }
+                while (enumerator.MoveNext())
+                {
+                    yield return enumerator.Current;
                 }
             }
             return Iterator();
         }
 
-        #endregion
+        #endregion Skip
 
         #region SkipWhile
 
@@ -1212,8 +1207,8 @@ namespace System.Linq
         {
             IEnumerable<TSource> Iterator()
             {
-                bool yield = false;
-                foreach (TSource element in source)
+                var yield = false;
+                foreach (var element in source)
                 {
                     if (yield)
                     {
@@ -1233,10 +1228,10 @@ namespace System.Linq
         {
             IEnumerable<TSource> Iterator()
             {
-                int counter = 0;
-                bool yield = false;
+                var counter = 0;
+                var yield = false;
 
-                foreach (TSource element in source)
+                foreach (var element in source)
                 {
                     if (yield)
                     {
@@ -1253,7 +1248,7 @@ namespace System.Linq
             return Iterator();
         }
 
-        #endregion
+        #endregion SkipWhile
 
         #region Sum
 
@@ -1341,7 +1336,7 @@ namespace System.Linq
         public static decimal? Sum<TSource>(this IEnumerable<TSource> source, Func<TSource, decimal?> selector)
             => CalcSum(source, selector, (result, element) => element.HasValue ? result ?? 0 + element : result);
 
-        #endregion
+        #endregion Sum
 
         #region Take
 
@@ -1353,8 +1348,8 @@ namespace System.Linq
                 {
                     yield break;
                 }
-                int counter = 0;
-                foreach (TSource element in source)
+                var counter = 0;
+                foreach (var element in source)
                 {
                     if (counter++ == count)
                     {
@@ -1369,7 +1364,7 @@ namespace System.Linq
             return Iterator();
         }
 
-        #endregion
+        #endregion Take
 
         #region TakeWhile
 
@@ -1396,7 +1391,7 @@ namespace System.Linq
         {
             IEnumerable<TSource> Iterator()
             {
-                int counter = 0;
+                var counter = 0;
                 foreach (var element in source)
                 {
                     if (predicate(element, counter++))
@@ -1412,7 +1407,7 @@ namespace System.Linq
             return Iterator();
         }
 
-        #endregion
+        #endregion TakeWhile
 
         #region ThenBy
 
@@ -1422,11 +1417,7 @@ namespace System.Linq
         public static IOrderedEnumerable<TSource> ThenBy<TSource, TKey>(this IOrderedEnumerable<TSource> source, Func<TSource, TKey> keySelector, IComparer<TKey> comparer)
             => source.CreateOrderedEnumerable(keySelector, comparer, false);
 
-        #endregion
-
-        #region ThenByDescending
-
-        #endregion
+        #endregion ThenBy
 
         #region ToArray
 
@@ -1441,13 +1432,13 @@ namespace System.Linq
             return source.ToList().ToArray();
         }
 
-        #endregion
+        #endregion ToArray
 
         #region ToDictionary
 
         public static Dictionary<TKey, TElement> ToDictionary<TSource, TKey, TElement>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector, IEqualityComparer<TKey> comparer)
         {
-            Dictionary<TKey, TElement> result = (comparer == null) ? new Dictionary<TKey, TElement>() : new Dictionary<TKey, TElement>(comparer);
+            var result = (comparer == null) ? new Dictionary<TKey, TElement>() : new Dictionary<TKey, TElement>(comparer);
             foreach (var e in source)
             {
                 result.Add(keySelector(e), elementSelector(e));
@@ -1464,13 +1455,13 @@ namespace System.Linq
         public static Dictionary<TKey, TSource> ToDictionary<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, IEqualityComparer<TKey> comparer)
             => ToDictionary(source, keySelector, (i) => i, comparer);
 
-        #endregion
+        #endregion ToDictionary
 
         #region ToList
 
         public static List<TSource> ToList<TSource>(this IEnumerable<TSource> source) => (source is List<TSource> list) ? list : new List<TSource>(source);
 
-        #endregion
+        #endregion ToList
 
         #region ToLookup
 
@@ -1510,7 +1501,7 @@ namespace System.Linq
         public static ILookup<TKey, TElement> ToLookup<TSource, TKey, TElement>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector)
             => ToLookup(source, keySelector, elementSelector, null);
 
-        #endregion
+        #endregion ToLookup
 
         #region SequenceEqual
 
@@ -1520,27 +1511,25 @@ namespace System.Linq
             {
                 comparer = EqualityComparer<TSource>.Default;
             }
-            using (var firstEnumerator = first.GetEnumerator())
-            using (var secondEnumerator = second.GetEnumerator())
+            using var firstEnumerator = first.GetEnumerator();
+            using var secondEnumerator = second.GetEnumerator();
+            while (firstEnumerator.MoveNext())
             {
-                while (firstEnumerator.MoveNext())
+                if (!secondEnumerator.MoveNext())
                 {
-                    if (!secondEnumerator.MoveNext())
-                    {
-                        return false;
-                    }
-                    if (!comparer.Equals(firstEnumerator.Current, secondEnumerator.Current))
-                    {
-                        return false;
-                    }
+                    return false;
                 }
-                return !secondEnumerator.MoveNext();
+                if (!comparer.Equals(firstEnumerator.Current, secondEnumerator.Current))
+                {
+                    return false;
+                }
             }
+            return !secondEnumerator.MoveNext();
         }
 
         public static bool SequenceEqual<TSource>(this IEnumerable<TSource> first, IEnumerable<TSource> second) => first.SequenceEqual(second, null);
 
-        #endregion
+        #endregion SequenceEqual
 
         #region Union
 
@@ -1576,7 +1565,7 @@ namespace System.Linq
             return Iterator();
         }
 
-        #endregion
+        #endregion Union
 
         #region Where
 
@@ -1584,7 +1573,7 @@ namespace System.Linq
         {
             IEnumerable<TSource> Iterator()
             {
-                foreach (TSource element in source)
+                foreach (var element in source)
                 {
                     if (predicate(element))
                     {
@@ -1599,8 +1588,8 @@ namespace System.Linq
         {
             IEnumerable<TSource> Iterator()
             {
-                int counter = 0;
-                foreach (TSource element in source)
+                var counter = 0;
+                foreach (var element in source)
                 {
                     if (predicate(element, counter))
                     {
@@ -1612,7 +1601,7 @@ namespace System.Linq
             return Iterator();
         }
 
-        #endregion
+        #endregion Where
     }
 }
 

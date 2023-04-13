@@ -3,20 +3,13 @@
 
 namespace System.Threading.Tasks
 {
-    /// <summary>
-    /// Provides a basic set tasking functions backported from net 4.0 using the <see cref="Task.Factory.StartNew(Action, TaskCreationOptions)"/> function.
-    /// </summary>
     public class Task : IDisposable
     {
-        /// <summary>
-        /// Waits for all of the provided Task objects to complete execution.
-        /// </summary>
-        /// <param name="tasks">Task instances on which to wait.</param>
         public static void WaitAll(params Task[] tasks)
         {
             if (tasks == null)
             {
-                throw new ArgumentNullException("Tasks");
+                throw new ArgumentNullException(nameof(tasks));
             }
 
             foreach (var task in tasks)
@@ -25,12 +18,6 @@ namespace System.Threading.Tasks
             }
         }
 
-        /// <summary>
-        /// Waits for all of the provided Task objects to complete execution.
-        /// </summary>
-        /// <param name="tasks">Task instances on which to wait.</param>
-        /// <param name="timeoutMillis">milliseconds to wait.</param>
-        /// <returns>True if all tasks have completed in the given time.</returns>
         public static bool WaitAll(Task[] tasks, int timeoutMillis)
         {
             if (timeoutMillis < 0)
@@ -41,7 +28,7 @@ namespace System.Threading.Tasks
 
             if (tasks == null)
             {
-                throw new ArgumentNullException("Tasks");
+                throw new ArgumentNullException(nameof(tasks));
             }
 
             var timeout = DateTime.UtcNow + new TimeSpan(TimeSpan.TicksPerMillisecond * timeoutMillis);
@@ -61,11 +48,6 @@ namespace System.Threading.Tasks
             return true;
         }
 
-        /// <summary>
-        /// Waits for any of the provided Task objects to complete execution.
-        /// </summary>
-        /// <param name="tasks">Task instances on which to wait.</param>
-        /// <returns>The index of the completed Task object in the tasks array.</returns>
         public static int WaitAny(Task[] tasks)
         {
             if (tasks == null)
@@ -86,12 +68,6 @@ namespace System.Threading.Tasks
             }
         }
 
-        /// <summary>
-        /// Waits for any of the provided Task objects to complete execution.
-        /// </summary>
-        /// <param name="tasks">Task instances on which to wait.</param>
-        /// <param name="timeoutMillis">milliseconds to wait.</param>
-        /// <returns>The index of the completed Task object in the tasks array.</returns>
         public static int WaitAny(Task[] tasks, int timeoutMillis)
         {
             if (tasks == null)
@@ -116,17 +92,14 @@ namespace System.Threading.Tasks
 
         #region Task.Factory class
 
-        /// <summary>
-        /// Provides a simple task starting mechanism backported from net 4.0 using the <see cref="Task.Factory.StartNew(Action, TaskCreationOptions)"/> function.
-        /// </summary>
         public static class Factory
         {
-            /// <summary>
-            /// Creates and starts a task.
-            /// </summary>
-            /// <param name="action">The action delegate to execute asynchronously.</param>
-            /// <param name="options">LongRunning spawns a new seperate Thread.</param>
-            /// <returns>Returns a new <see cref="Task"/> instance.</returns>
+            static Factory()
+            {
+                ThreadPool.SetMaxThreads(1000, 1000);
+                ThreadPool.SetMinThreads(100, 100);
+            }
+
             public static Task StartNew(Action action, TaskCreationOptions options = TaskCreationOptions.None)
             {
                 var task = new Task(options, action, null);
@@ -134,13 +107,6 @@ namespace System.Threading.Tasks
                 return task;
             }
 
-            /// <summary>
-            /// Creates and starts a task.
-            /// </summary>
-            /// <param name="action">The action delegate to execute asynchronously.</param>
-            /// <param name="state">An object containing data to be used by the action delegate.</param>
-            /// <param name="options">LongRunning spawns a new seperate Thread.</param>
-            /// <returns>Returns a new <see cref="Task"/> instance.</returns>
             public static Task StartNew(Action<object> action, object state, TaskCreationOptions options = TaskCreationOptions.None)
             {
                 var task = new Task(options, action, state);
@@ -148,165 +114,133 @@ namespace System.Threading.Tasks
                 return task;
             }
 
-            /// <summary>
-            /// Creates and starts a task.
-            /// </summary>
-            /// <typeparam name="T">Type of the action delegate.</typeparam>
-            /// <param name="action">The action delegate to execute asynchronously.</param>
-            /// <param name="state">An object containing data to be used by the action delegate.</param>
-            /// <param name="options">LongRunning spawns a new seperate Thread.</param>
-            /// <returns>Returns a new <see cref="Task"/> instance.</returns>
-            public static Task StartNew<T>(Action<T> action, T state, TaskCreationOptions options = TaskCreationOptions.None) => StartNew((object o) => action((T)o), state, options);
+            public static Task StartNew<T>(Action<T> action, object state, TaskCreationOptions options = TaskCreationOptions.None) => StartNew((object o) => action((T)o), state, options);
         }
 
-        #endregion Task.Factory class
+        #endregion
 
         #region private functionality
-
-        readonly object State;
-        readonly object Action;
-        readonly TaskCreationOptions CreationOptions;
-        bool started = false;
+        readonly object state;
+        readonly object action;
+        readonly TaskCreationOptions creationOptions;
+        readonly ManualResetEvent completedEvent = new(false);
 
         void Worker(object nothing = null)
         {
-            var action = Action;
-
-            // spawn a new seperate thread for long running threads
-            if ((CreationOptions == TaskCreationOptions.LongRunning) && Thread.CurrentThread.IsThreadPoolThread)
+            void Exit()
             {
-                var thread = new Thread(Worker)
+                lock (this)
                 {
-                    IsBackground = true,
-                };
-                thread.Start(action);
+                    IsCompleted = true;
+                    completedEvent.Set();
+                }
+            }
+
+            try
+            {
+                // spawn a new seperate thread for long running threads
+                if ((creationOptions == TaskCreationOptions.LongRunning) && Thread.CurrentThread.IsThreadPoolThread)
+                {
+                    var thread = new Thread(Worker)
+                    {
+                        IsBackground = true,
+                    };
+                    thread.Start(null);
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                Exception = new AggregateException(ex);
+                Exit();
                 return;
             }
 
             try
             {
-                if (started)
+                if (action is Action actionTyp1)
                 {
-                    throw new InvalidOperationException("Already started!");
+                    actionTyp1();
+                    return;
                 }
-
-                started = true;
+                else if (action is Action<object> actionTyp2)
                 {
-                    if (action is Action a)
-                    {
-                        a();
-                        return;
-                    }
+                    actionTyp2(state);
+                    return;
                 }
+                else
                 {
-                    if (action is Action<object> a)
-                    {
-                        a(State);
-                        return;
-                    }
+                    throw new ExecutionEngineException($"Fatal exception in Task.Worker. Invalid action type {action}!");
                 }
             }
             catch (Exception ex)
             {
-                Exception = ex;
+                Exception = new AggregateException(ex);
             }
-            lock (this)
+            finally
             {
-                IsCompleted = true;
-                Monitor.Pulse(this);
+                Exit();
             }
         }
-
-        #endregion private functionality
+        #endregion
 
         #region constructor
-
         private Task(TaskCreationOptions creationOptions, object action, object state)
         {
-            this.CreationOptions = creationOptions;
-            Action = action;
-            State = state;
+            this.creationOptions = creationOptions;
+            this.action = action;
+            this.state = state;
         }
-
-        #endregion constructor
+        #endregion
 
         #region public functionality
 
-        /// <summary>
-        /// Waits for a task completion.
-        /// </summary>
         public void Wait()
         {
             while (!IsCompleted)
             {
-                lock (this)
-                {
-                    Monitor.Wait(this);
-                }
+                completedEvent.WaitOne();
+            }
+            if (IsFaulted)
+            {
+                throw Exception;
             }
         }
 
-        /// <summary>
-        /// Waits for a task completion.
-        /// </summary>
-        /// <param name="mssTimeout">Milliseconds to wait.</param>
-        /// <returns>Releases the lock on an object and blocks the current thread until it reacquires the lock.</returns>
         public bool Wait(int mssTimeout)
         {
             if (IsCompleted)
             {
-                return true;
+                return !IsFaulted ? true : throw Exception;
             }
 
-            lock (this)
-            {
-                return Monitor.Wait(this, mssTimeout);
-            }
+            var result = completedEvent.WaitOne(mssTimeout);
+            return !IsFaulted ? result : throw Exception;
         }
-
-        #endregion public functionality
+        #endregion
 
         #region public properties
 
-        /// <summary>
-        /// Gets the expection thown by a task.
-        /// </summary>
         public Exception Exception { get; private set; }
 
-        /// <summary>
-        /// Gets a value indicating whether the task completed or not.
-        /// </summary>
         public bool IsCompleted { get; private set; }
 
-        /// <summary>
-        /// Gets a value indicating whether the Task completed due to an unhandled exception.
-        /// </summary>
         public bool IsFaulted => Exception != null;
-
-        #endregion public properties
+        #endregion
 
         #region IDisposable Member
 
-        /// <summary>
-        /// Releases the unmanaged resources used by this instance and optionally releases the managed resources.
-        /// </summary>
-        /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
         {
         }
 
-        /// <summary>
-        /// Frees all used resources.
-        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
-        #endregion IDisposable Member
+        #endregion
     }
 }
-#else
-#error No code defined for the current framework or NETXX version define missing!
+
 #endif

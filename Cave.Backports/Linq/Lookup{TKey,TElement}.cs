@@ -1,4 +1,5 @@
 ﻿#if NET20
+#pragma warning disable CS1591 // no comments for backported extensions
 
 using System.Collections;
 using System.Collections.Generic;
@@ -7,35 +8,35 @@ namespace System.Linq
 {
     public class Lookup<TKey, TElement> : IEnumerable<IGrouping<TKey, TElement>>, ILookup<TKey, TElement>
     {
-        readonly IGrouping<TKey, TElement> DefaultGroup;
-        readonly Dictionary<TKey, IGrouping<TKey, TElement>> Groups;
+        readonly IGrouping<TKey, TElement> defaultGroup;
+        readonly Dictionary<TKey, IGrouping<TKey, TElement>> groups;
 
         internal Lookup(Dictionary<TKey, List<TElement>> lookup, IEnumerable<TElement> defaultKeyElements)
         {
-            Groups = new Dictionary<TKey, IGrouping<TKey, TElement>>(lookup.Comparer);
+            groups = new Dictionary<TKey, IGrouping<TKey, TElement>>(lookup.Comparer);
             foreach (var item in lookup)
             {
-                Groups.Add(item.Key, new Grouping<TKey, TElement>(item.Key, item.Value));
+                groups.Add(item.Key, new Grouping<TKey, TElement>(item.Key, item.Value));
             }
             if (defaultKeyElements != null)
             {
-                DefaultGroup = new Grouping<TKey, TElement>(default, defaultKeyElements);
+                defaultGroup = new Grouping<TKey, TElement>(default, defaultKeyElements);
             }
         }
 
-        public int Count => (DefaultGroup == null) ? Groups.Count : Groups.Count + 1;
+        public int Count => defaultGroup == null ? groups.Count : groups.Count + 1;
 
         public IEnumerable<TElement> this[TKey key]
         {
             get
             {
-                if (key == null && DefaultGroup != null)
+                if (key == null && defaultGroup != null)
                 {
-                    return DefaultGroup;
+                    return defaultGroup;
                 }
                 else if (key != null)
                 {
-                    if (Groups.TryGetValue(key, out var group))
+                    if (groups.TryGetValue(key, out var group))
                     {
                         return group;
                     }
@@ -46,38 +47,42 @@ namespace System.Linq
 
         public IEnumerable<TResult> ApplyResultSelector<TResult>(Func<TKey, IEnumerable<TElement>, TResult> resultSelector)
         {
-            if (DefaultGroup != null)
+            if (resultSelector == null)
             {
-                yield return resultSelector(DefaultGroup.Key, DefaultGroup);
+                throw new ArgumentNullException(nameof(resultSelector));
             }
-            foreach (var group in Groups.Values)
+            if (defaultGroup != null)
+            {
+                yield return resultSelector(defaultGroup.Key, defaultGroup);
+            }
+            foreach (var group in groups.Values)
             {
                 yield return resultSelector(group.Key, group);
             }
         }
 
-        public bool Contains(TKey key) => (key == null) ? DefaultGroup != null : Groups.ContainsKey(key);
+        public bool Contains(TKey key) => key == null ? defaultGroup != null : groups.ContainsKey(key);
 
         public bool TryGetGroup(TKey key, out IGrouping<TKey, TElement> group)
         {
             if (key == null)
             {
-                group = DefaultGroup;
+                group = defaultGroup;
                 return group != null;
             }
             else
             {
-                return Groups.TryGetValue(key, out group);
+                return groups.TryGetValue(key, out group);
             }
         }
 
         public IEnumerator<IGrouping<TKey, TElement>> GetEnumerator()
         {
-            if (DefaultGroup != null)
+            if (defaultGroup != null)
             {
-                yield return DefaultGroup;
+                yield return defaultGroup;
             }
-            foreach (var group in Groups.Values)
+            foreach (var group in groups.Values)
             {
                 yield return group;
             }

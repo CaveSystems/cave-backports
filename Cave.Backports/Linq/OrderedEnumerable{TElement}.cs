@@ -7,16 +7,21 @@ namespace System.Linq
 {
     sealed class OrderedEnumerable<TElement> : IOrderedEnumerable<TElement>
     {
-        readonly IEnumerable<TElement> Elements;
+        readonly IEnumerable<TElement> elements;
 
-        public OrderedEnumerable(IEnumerable<TElement> elements) => this.Elements = elements;
+        public OrderedEnumerable(IEnumerable<TElement> elements) => this.elements = elements;
 
         public IOrderedEnumerable<TElement> CreateOrderedEnumerable<TKey>(Func<TElement, TKey> keySelector, IComparer<TKey> comparer, bool descending)
         {
-            var dict = new SortedDictionary<TKey, TElement>(comparer);
-            foreach (var element in Elements)
+            var dict = new SortedDictionary<TKey, List<TElement>>(comparer);
+            foreach (var element in elements)
             {
-                dict.Add(keySelector(element), element);
+                var key = keySelector(element);
+                if (!dict.TryGetValue(key, out var list))
+                {
+                    dict[key] = list = new List<TElement>();
+                }
+                list.Add(element);
             }
             var sorted = dict.Values.ToList();
             if (descending)
@@ -24,12 +29,12 @@ namespace System.Linq
                 sorted.Reverse();
             }
 
-            return new OrderedEnumerable<TElement>(sorted);
+            return new OrderedEnumerable<TElement>(sorted.SelectMany(s => s));
         }
 
-        public IEnumerator<TElement> GetEnumerator() => Elements.GetEnumerator();
+        public IEnumerator<TElement> GetEnumerator() => elements.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() => Elements.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => elements.GetEnumerator();
     }
 }
 

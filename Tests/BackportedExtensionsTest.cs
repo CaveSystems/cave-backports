@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using NUnit.Framework;
 
 namespace Tests
 {
-    [Test]
+    [TestFixture]
     public class BackportedExtensionsTest
     {
         static string Select(string longest, string next) => longest == null || next.Length > longest.Length ? next : longest;

@@ -12,7 +12,7 @@ pool:
   vmImage: 'windows-latest'
 
 variables:
-  fixedBuildVersion: '2.0'
+  fixedBuildVersion: '3.0'
   solution: '**/*.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
@@ -65,6 +65,48 @@ steps:
   inputs:
     versionSpec: '>=4.9.0'
 
+- task: UseDotNet@2
+  displayName: 'Install .NET sdk 7'
+  inputs:
+    packageType: sdk
+    version: 7.x
+    installationPath: $(Agent.ToolsDirectory)/dotnet
+
+- task: UseDotNet@2
+  displayName: 'Install .NET sdk 6'
+  inputs:
+    packageType: sdk
+    version: 6.x
+    installationPath: $(Agent.ToolsDirectory)/dotnet
+
+- task: UseDotNet@2
+  displayName: 'Install .NET sdk 5'
+  inputs:
+    packageType: sdk
+    version: 5.x
+    installationPath: $(Agent.ToolsDirectory)/dotnet
+    
+- task: UseDotNet@2
+  displayName: 'Install .NET Core sdk 3.1'
+  inputs:
+    packageType: sdk
+    version: 3.1.x
+    installationPath: $(Agent.ToolsDirectory)/dotnet
+
+- task: UseDotNet@2
+  displayName: 'Install .NET Core sdk 2.1'
+  inputs:
+    packageType: sdk
+    version: 2.1.x
+    installationPath: $(Agent.ToolsDirectory)/dotnet
+
+- task: UseDotNet@2
+  displayName: 'Install .NET Core sdk 1.1'
+  inputs:
+    packageType: sdk
+    version: 1.1.x
+    installationPath: $(Agent.ToolsDirectory)/dotnet
+    
 - task: NuGetCommand@2
   displayName: Restore nuget packages
   inputs:
@@ -73,15 +115,55 @@ steps:
 - task: VSBuild@1
   displayName: Build solution
   inputs:
+    maximumCpuCount: true
     solution: '$(solution)'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
 - task: VSTest@2
+  displayName: Test netcore
   inputs:
+    runInParallel: true
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
-    testAssemblyVer2: '**\bin\Release\**\Test.exe'
+    codeCoverageEnabled: true
+    testAssemblyVer2: |
+      **/bin/Release/netcoreapp*/Test.dll
+
+- task: VSTest@2
+  displayName: Test net5+
+  inputs:
+    runInParallel: true
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+    codeCoverageEnabled: true
+    testAssemblyVer2: |
+      **/bin/Release/net?.?/Test.dll
+
+- task: VSTest@2
+  displayName: Test net2x, net3x
+  inputs:
+    runInParallel: true
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+    codeCoverageEnabled: true
+    testAssemblyVer2: |
+      **/bin/Release/net20/Test.exe
+      **/bin/Release/net35/Test.exe
+
+- task: VSTest@2
+  displayName: Test net4x
+  inputs:
+    runInParallel: true
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+    codeCoverageEnabled: true
+    testAssemblyVer2: |
+      **/bin/Release/net40/Test.exe
+      **/bin/Release/net45/Test.exe
+      **/bin/Release/net46/Test.exe
+      **/bin/Release/net47/Test.exe
+      **/bin/Release/net48/Test.exe
 
 - task: NuGetCommand@2
   displayName: Push to nuget (release)

@@ -1,4 +1,5 @@
 ﻿#if NETSTANDARD1_0
+#pragma warning disable CA1010
 
 using System.Collections.Generic;
 using System.Linq;

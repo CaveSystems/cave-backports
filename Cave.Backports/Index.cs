@@ -69,7 +69,7 @@ namespace System
         [MethodImpl((MethodImplOptions)256)]
         public int GetOffset(int length)
         {
-            var offset = Value;
+            var offset = value;
             if (IsFromEnd)
             {
                 offset += length + 1;

@@ -9,6 +9,13 @@ namespace Test.Backports
     [TestFixture]
     class TaskTests
     {
+        static TaskTests()
+        {
+#if !NETCOREAPP1_1
+            ThreadPool.SetMinThreads(100, 100);
+#endif
+        }
+
         static void TestSleep(int number) => Thread.Sleep(1000 - number);
 
         static void TestWait(Task task)

@@ -443,7 +443,7 @@ namespace System.Linq
             IEnumerable<TSource> Iterator()
             {
                 var items = new Dictionary<TSource, object>(comparer);
-                foreach (var item in first)
+                foreach (var item in second)
                 {
                     items.Add(item, null);
                 }

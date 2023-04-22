@@ -24,7 +24,7 @@ namespace System
             this.value = fromEnd ? ~value : value;
         }
 
-        private Index(int value) => this.value = value;
+        Index(int value) => this.value = value;
 
         public static Index Start => new(0);
 
@@ -38,7 +38,7 @@ namespace System
                 throw new ArgumentOutOfRangeException(nameof(value), "Index must not be negative.");
             }
 
-            return new Index(value);
+            return new(value);
         }
 
         [MethodImpl((MethodImplOptions)256)]
@@ -49,7 +49,7 @@ namespace System
                 throw new ArgumentOutOfRangeException(nameof(value), "Index must not be negative.");
             }
 
-            return new Index(~value);
+            return new(~value);
         }
 
         #endregion Public Constructors

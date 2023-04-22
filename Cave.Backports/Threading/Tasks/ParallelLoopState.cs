@@ -7,19 +7,26 @@ namespace System.Threading.Tasks
     [DebuggerDisplay("ShouldExitCurrentIteration = {ShouldExitCurrentIteration}")]
     public class ParallelLoopState
     {
-        public bool ShouldExitCurrentIteration { get; private set; }
-
-        public bool IsStopped { get; private set; }
+        #region Properties
 
         public bool IsExceptional { get; private set; }
 
-        public void Stop() => IsStopped = true;
+        public bool IsStopped { get; private set; }
+        public bool ShouldExitCurrentIteration { get; private set; }
+
+        internal bool StopByAnySource => IsExceptional || IsStopped || ShouldExitCurrentIteration;
+
+        #endregion
+
+        #region Members
 
         public void Break() => ShouldExitCurrentIteration = true;
 
+        public void Stop() => IsStopped = true;
+
         internal void SetException() => IsExceptional = true;
 
-        internal bool StopByAnySource => IsExceptional || IsStopped || ShouldExitCurrentIteration;
+        #endregion
     }
 }
 

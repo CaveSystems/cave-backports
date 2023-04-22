@@ -10,11 +10,58 @@ namespace System.Collections.Generic
     [DebuggerDisplay("Count={Count}")]
     public sealed class HashSet<T> : ISet<T>
     {
+        #region Fields
+
         #region private Member
 
         Dictionary<T, byte> dict = new();
 
         #endregion
+
+        #endregion
+
+        #region ISet<T> Members
+
+        #region ICollection<T> Member
+
+        /// <summary>Gets a value indicating whether the set is readonly or not.</summary>
+        public bool IsReadOnly => false;
+
+        #endregion
+
+        #region IEnumerable Member
+
+        /// <summary>Gets an <see cref="IEnumerator" /> for this set.</summary>
+        IEnumerator IEnumerable.GetEnumerator() => dict.Keys.GetEnumerator();
+
+        #endregion
+
+        #region IEnumerable<T> Member
+
+        /// <inheritdoc />
+        public IEnumerator<T> GetEnumerator() => dict.Keys.GetEnumerator();
+
+        #endregion
+
+        #endregion
+
+        #region Members
+
+        #region ICloneable Member
+
+        /// <summary>Creates a copy of this set.</summary>
+        public object Clone() => new HashSet<T>(dict.Keys);
+
+        #endregion
+
+        /// <summary>Gets an array of all elements present.</summary>
+        /// <returns></returns>
+        public T[] ToArray()
+        {
+            var result = new T[Count];
+            CopyTo(result, 0);
+            return result;
+        }
 
         [MethodImpl((MethodImplOptions)256)]
         void Include(T item) => dict[item] = 1;
@@ -27,6 +74,8 @@ namespace System.Collections.Generic
                 Include(item);
             }
         }
+
+        #endregion
 
         #region constructors
 
@@ -129,7 +178,10 @@ namespace System.Collections.Generic
             var count = 0;
             foreach (var item in other)
             {
-                if (!dict.ContainsKey(item)) return false;
+                if (!dict.ContainsKey(item))
+                {
+                    return false;
+                }
                 count++;
             }
             return Count == count;
@@ -165,9 +217,7 @@ namespace System.Collections.Generic
 
         #region ICollection Member
 
-        /// <summary>
-        /// Copies all items present at the set to the specified array, starting at a specified index.
-        /// </summary>
+        /// <summary>Copies all items present at the set to the specified array, starting at a specified index.</summary>
         /// <param name="array">one-dimensional array to copy to.</param>
         /// <param name="arrayIndex">the zero-based index in array at which copying begins.</param>
         public void CopyTo(T[] array, int arrayIndex) => dict.Keys.CopyTo(array, arrayIndex);
@@ -176,43 +226,6 @@ namespace System.Collections.Generic
         public int Count => dict.Count;
 
         #endregion
-
-        #region IEnumerable Member
-
-        /// <summary>Gets an <see cref="IEnumerator" /> for this set.</summary>
-        IEnumerator IEnumerable.GetEnumerator() => dict.Keys.GetEnumerator();
-
-        #endregion
-
-        #region ICloneable Member
-
-        /// <summary>Creates a copy of this set.</summary>
-        public object Clone() => new HashSet<T>(dict.Keys);
-
-        #endregion
-
-        #region ICollection<T> Member
-
-        /// <summary>Gets a value indicating whether the set is readonly or not.</summary>
-        public bool IsReadOnly => false;
-
-        #endregion
-
-        #region IEnumerable<T> Member
-
-        /// <inheritdoc />
-        public IEnumerator<T> GetEnumerator() => dict.Keys.GetEnumerator();
-
-        #endregion
-
-        /// <summary>Gets an array of all elements present.</summary>
-        /// <returns></returns>
-        public T[] ToArray()
-        {
-            var result = new T[Count];
-            CopyTo(result, 0);
-            return result;
-        }
     }
 }
 

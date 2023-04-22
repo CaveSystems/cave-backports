@@ -8,7 +8,7 @@ namespace System.Threading.Tasks
     {
         None = 0x0,
         PreferFairness = 0x1,
-        LongRunning = 0x2,
+        LongRunning = 0x2
     }
 }
 

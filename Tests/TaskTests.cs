@@ -4,8 +4,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
-namespace Test.Backports
-{
+namespace Test.Backports;
+
     [TestFixture]
     class TaskTests
     {
@@ -87,4 +87,4 @@ namespace Test.Backports
             }
         }
     }
-}
+

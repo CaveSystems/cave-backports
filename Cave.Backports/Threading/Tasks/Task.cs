@@ -5,6 +5,45 @@ namespace System.Threading.Tasks
 {
     public class Task : IDisposable
     {
+        #region Nested type: Factory
+
+        #region Task.Factory class
+
+        public static class Factory
+        {
+            #region Static
+
+            public static Task StartNew(Action action, TaskCreationOptions options = TaskCreationOptions.None)
+            {
+                var task = new Task(options, action, null);
+                ThreadPool.QueueUserWorkItem(task.Worker, action);
+                return task;
+            }
+
+            public static Task StartNew(Action<object> action, object state, TaskCreationOptions options = TaskCreationOptions.None)
+            {
+                var task = new Task(options, action, state);
+                ThreadPool.QueueUserWorkItem(task.Worker, action);
+                return task;
+            }
+
+            public static Task StartNew<T>(Action<T> action, object state, TaskCreationOptions options = TaskCreationOptions.None) => StartNew(o => action((T)o), state, options);
+
+            static Factory()
+            {
+                ThreadPool.SetMaxThreads(1000, 1000);
+                ThreadPool.SetMinThreads(100, 100);
+            }
+
+            #endregion
+        }
+
+        #endregion
+
+        #endregion
+
+        #region Static
+
         public static void WaitAll(params Task[] tasks)
         {
             if (tasks == null)
@@ -35,7 +74,7 @@ namespace System.Threading.Tasks
             foreach (var task in tasks)
             {
                 var wait = timeout - DateTime.UtcNow;
-                if (wait < TimeSpan.Zero && !task.IsCompleted)
+                if ((wait < TimeSpan.Zero) && !task.IsCompleted)
                 {
                     return false;
                 }
@@ -90,110 +129,39 @@ namespace System.Threading.Tasks
             return -1;
         }
 
-        #region Task.Factory class
-
-        public static class Factory
-        {
-            static Factory()
-            {
-                ThreadPool.SetMaxThreads(1000, 1000);
-                ThreadPool.SetMinThreads(100, 100);
-            }
-
-            public static Task StartNew(Action action, TaskCreationOptions options = TaskCreationOptions.None)
-            {
-                var task = new Task(options, action, null);
-                ThreadPool.QueueUserWorkItem(task.Worker, action);
-                return task;
-            }
-
-            public static Task StartNew(Action<object> action, object state, TaskCreationOptions options = TaskCreationOptions.None)
-            {
-                var task = new Task(options, action, state);
-                ThreadPool.QueueUserWorkItem(task.Worker, action);
-                return task;
-            }
-
-            public static Task StartNew<T>(Action<T> action, object state, TaskCreationOptions options = TaskCreationOptions.None) => StartNew((object o) => action((T)o), state, options);
-        }
-
         #endregion
 
-        #region private functionality
+        #region Fields
+
         readonly object state;
         readonly object action;
         readonly TaskCreationOptions creationOptions;
         readonly ManualResetEvent completedEvent = new(false);
 
-        void Worker(object nothing = null)
-        {
-            void Exit()
-            {
-                lock (this)
-                {
-                    IsCompleted = true;
-                    completedEvent.Set();
-                }
-            }
-
-            try
-            {
-                // spawn a new seperate thread for long running threads
-                if ((creationOptions == TaskCreationOptions.LongRunning) && Thread.CurrentThread.IsThreadPoolThread)
-                {
-                    var thread = new Thread(Worker)
-                    {
-                        IsBackground = true,
-                    };
-                    thread.Start(null);
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                Exception = new AggregateException(ex);
-                Exit();
-                return;
-            }
-
-            try
-            {
-                if (action is Action actionTyp1)
-                {
-                    actionTyp1();
-                    return;
-                }
-                else if (action is Action<object> actionTyp2)
-                {
-                    actionTyp2(state);
-                    return;
-                }
-                else
-                {
-                    throw new ExecutionEngineException($"Fatal exception in Task.Worker. Invalid action type {action}!");
-                }
-            }
-            catch (Exception ex)
-            {
-                Exception = new AggregateException(ex);
-            }
-            finally
-            {
-                Exit();
-            }
-        }
         #endregion
 
-        #region constructor
-        private Task(TaskCreationOptions creationOptions, object action, object state)
+        #region Constructors
+
+        Task(TaskCreationOptions creationOptions, object action, object state)
         {
             this.creationOptions = creationOptions;
             this.action = action;
             this.state = state;
         }
+
         #endregion
 
-        #region public functionality
+        #region Properties
+
+        public bool IsFaulted => Exception != null;
+
+        public Exception Exception { get; private set; }
+
+        public bool IsCompleted { get; private set; }
+
+        #endregion
+
+        #region Members
 
         public void Wait()
         {
@@ -217,28 +185,75 @@ namespace System.Threading.Tasks
             var result = completedEvent.WaitOne(mssTimeout);
             return !IsFaulted ? result : throw Exception;
         }
-        #endregion
 
-        #region public properties
+        void Worker(object nothing = null)
+        {
+            void Exit()
+            {
+                lock (this)
+                {
+                    IsCompleted = true;
+                    completedEvent.Set();
+                }
+            }
 
-        public Exception Exception { get; private set; }
+            try
+            {
+                // spawn a new separate thread for long running threads
+                if ((creationOptions == TaskCreationOptions.LongRunning) && Thread.CurrentThread.IsThreadPoolThread)
+                {
+                    var thread = new Thread(Worker)
+                    {
+                        IsBackground = true
+                    };
+                    thread.Start(null);
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                Exception = new AggregateException(ex);
+                Exit();
+                return;
+            }
 
-        public bool IsCompleted { get; private set; }
+            try
+            {
+                if (action is Action actionTyp1)
+                {
+                    actionTyp1();
+                }
+                else if (action is Action<object> actionTyp2)
+                {
+                    actionTyp2(state);
+                }
+                else
+                {
+                    throw new ExecutionEngineException($"Fatal exception in Task.Worker. Invalid action type {action}!");
+                }
+            }
+            catch (Exception ex)
+            {
+                Exception = new AggregateException(ex);
+            }
+            finally
+            {
+                Exit();
+            }
+        }
 
-        public bool IsFaulted => Exception != null;
         #endregion
 
         #region IDisposable Member
 
-        protected virtual void Dispose(bool disposing)
-        {
-        }
+        protected virtual void Dispose(bool disposing) { }
 
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
         #endregion
     }
 }

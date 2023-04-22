@@ -1,8 +1,8 @@
 ﻿#if NET20 || NET35
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Data;
+using System.Diagnostics;
 
 namespace System.Collections.ObjectModel;
 
@@ -10,73 +10,38 @@ namespace System.Collections.ObjectModel;
 [DebuggerDisplay("Count = {Count}")]
 public class ReadOnlyDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary
 {
-    readonly IDictionary<TKey, TValue> dict;
+    #region Static
 
-    public ReadOnlyDictionary(IDictionary<TKey, TValue> dictionary) => dict = dictionary ?? throw new ArgumentNullException(nameof(dictionary));
-
-    protected IDictionary<TKey, TValue> Dictionary => dict;
-
-    public ICollection<TKey> Keys => new ReadOnlyCollectionWrapper<TKey>(dict.Keys);
-
-    public ICollection<TValue> Values => new ReadOnlyCollectionWrapper<TValue>(dict.Values);
-
-    #region IDictionary<TKey, TValue> Members
-
-    public bool ContainsKey(TKey key) => dict.ContainsKey(key);
-
-    ICollection<TKey> IDictionary<TKey, TValue>.Keys => Keys;
-
-    public bool TryGetValue(TKey key, out TValue value) => dict.TryGetValue(key, out value);
-
-    ICollection<TValue> IDictionary<TKey, TValue>.Values => Values;
-
-    public TValue this[TKey key] => dict[key];
-
-    void IDictionary<TKey, TValue>.Add(TKey key, TValue value) => throw new ReadOnlyException();
-
-    bool IDictionary<TKey, TValue>.Remove(TKey key) => throw new ReadOnlyException();
-
-    TValue IDictionary<TKey, TValue>.this[TKey key]
-    {
-        get => dict[key];
-        set => throw new ReadOnlyException();
-    }
+    static bool IsCompatibleKey(object key) => key is not null ? key is TKey : throw new ArgumentNullException(nameof(key));
 
     #endregion
 
-    #region ICollection<KeyValuePair<TKey, TValue>> Members
+    #region Constructors
 
-    public int Count => dict.Count;
-
-    public bool Contains(KeyValuePair<TKey, TValue> item) => dict.Contains(item);
-
-    public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex) => dict.CopyTo(array, arrayIndex);
-
-    public bool IsReadOnly => true;
-
-    void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item) => throw new ReadOnlyException();
-
-    void ICollection<KeyValuePair<TKey, TValue>>.Clear() => throw new ReadOnlyException();
-
-    bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item) => throw new ReadOnlyException();
+    public ReadOnlyDictionary(IDictionary<TKey, TValue> dictionary) => Dictionary = dictionary ?? throw new ArgumentNullException(nameof(dictionary));
 
     #endregion
 
-    #region IEnumerable<KeyValuePair<TKey, TValue>> Members
+    #region Properties
 
-    public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator() => dict.GetEnumerator();
+    public TValue this[TKey key] => Dictionary[key];
 
-    #endregion
+    public ICollection<TKey> Keys => new ReadOnlyCollectionWrapper<TKey>(Dictionary.Keys);
 
-    #region IEnumerable Members
+    public ICollection<TValue> Values => new ReadOnlyCollectionWrapper<TValue>(Dictionary.Values);
 
-    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => ((IEnumerable)dict).GetEnumerator();
+    protected IDictionary<TKey, TValue> Dictionary { get; }
 
     #endregion
 
     #region IDictionary Members
 
-    static bool IsCompatibleKey(object key) => key is not null ? key is TKey : throw new ArgumentNullException(nameof(key));
+    void ICollection.CopyTo(Array array, int index) => ((ICollection)Dictionary).CopyTo(array, index);
+
+    public bool IsSynchronized => false;
+
+    [field: NonSerialized]
+    public object SyncRoot { get; } = new();
 
     void IDictionary.Add(object key, object value) => throw new ReadOnlyException();
 
@@ -84,33 +49,65 @@ public class ReadOnlyDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDict
 
     bool IDictionary.Contains(object key) => IsCompatibleKey(key) && ContainsKey((TKey)key);
 
-    IDictionaryEnumerator IDictionary.GetEnumerator() => ((IDictionary)dict).GetEnumerator();
+    IDictionaryEnumerator IDictionary.GetEnumerator() => ((IDictionary)Dictionary).GetEnumerator();
 
     bool IDictionary.IsFixedSize => true;
 
     bool IDictionary.IsReadOnly => true;
 
-    ICollection IDictionary.Keys => ((IDictionary)dict).Keys;
-
-    void IDictionary.Remove(object key) => throw new ReadOnlyException();
-
-    ICollection IDictionary.Values => ((IDictionary)dict).Values;
-
     object IDictionary.this[object key]
     {
-        get => ((IDictionary)dict)[key];
+        get => ((IDictionary)Dictionary)[key];
         set => throw new ReadOnlyException();
     }
 
-    void ICollection.CopyTo(Array array, int index) => ((ICollection)dict).CopyTo(array, index);
+    ICollection IDictionary.Keys => ((IDictionary)Dictionary).Keys;
 
-    public bool IsSynchronized => false;
+    void IDictionary.Remove(object key) => throw new ReadOnlyException();
 
-    [field: NonSerialized]
-    public object SyncRoot { get; } = new();
+    ICollection IDictionary.Values => ((IDictionary)Dictionary).Values;
 
     #endregion
 
+    #region IDictionary<TKey,TValue> Members
+
+    void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item) => throw new ReadOnlyException();
+
+    void ICollection<KeyValuePair<TKey, TValue>>.Clear() => throw new ReadOnlyException();
+
+    public bool Contains(KeyValuePair<TKey, TValue> item) => Dictionary.Contains(item);
+
+    public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex) => Dictionary.CopyTo(array, arrayIndex);
+
+    public int Count => Dictionary.Count;
+
+    public bool IsReadOnly => true;
+
+    bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item) => throw new ReadOnlyException();
+
+    void IDictionary<TKey, TValue>.Add(TKey key, TValue value) => throw new ReadOnlyException();
+
+    public bool ContainsKey(TKey key) => Dictionary.ContainsKey(key);
+
+    TValue IDictionary<TKey, TValue>.this[TKey key]
+    {
+        get => Dictionary[key];
+        set => throw new ReadOnlyException();
+    }
+
+    ICollection<TKey> IDictionary<TKey, TValue>.Keys => Keys;
+
+    bool IDictionary<TKey, TValue>.Remove(TKey key) => throw new ReadOnlyException();
+
+    public bool TryGetValue(TKey key, out TValue value) => Dictionary.TryGetValue(key, out value);
+
+    ICollection<TValue> IDictionary<TKey, TValue>.Values => Values;
+
+    IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)Dictionary).GetEnumerator();
+
+    public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator() => Dictionary.GetEnumerator();
+
+    #endregion
 }
 
 #endif

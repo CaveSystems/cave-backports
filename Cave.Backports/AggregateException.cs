@@ -12,7 +12,13 @@ namespace System
     [SecurityPermission(SecurityAction.InheritanceDemand, Flags = SecurityPermissionFlag.SerializationFormatter)]
     public class AggregateException : Exception
     {
+        #region Fields
+
         readonly IList<Exception> exceptions;
+
+        #endregion
+
+        #region Constructors
 
         public AggregateException()
             : base("One ore more exceptions occured.") => exceptions = new Exception[0];
@@ -27,25 +33,31 @@ namespace System
             : base(msg) => exceptions = new Exception[0];
 
         public AggregateException(string msg, Exception innerException)
-            : base(msg) => exceptions = new Exception[] { innerException };
+            : base(msg) => exceptions = new[] { innerException };
 
         public AggregateException(string msg, params Exception[] innerExceptions)
-            : base(msg, innerExceptions != null && innerExceptions.Length > 0 ? innerExceptions[0] : null) => exceptions = innerExceptions;
+            : base(msg, (innerExceptions != null) && (innerExceptions.Length > 0) ? innerExceptions[0] : null) => exceptions = innerExceptions;
 
         public AggregateException(string msg, IEnumerable<Exception> innerExceptions)
-            : this(msg, innerExceptions.ToArray())
-        {
-        }
+            : this(msg, innerExceptions.ToArray()) { }
+
+        protected AggregateException(SerializationInfo info, StreamingContext context)
+            : base(info, context) { }
+
+        #endregion
+
+        #region Properties
 
         public ReadOnlyCollectionWrapper<Exception> InnerExceptions => new(exceptions);
 
-        protected AggregateException(SerializationInfo info, StreamingContext context)
-            : base(info, context)
-        {
-        }
+        #endregion
+
+        #region Overrides
 
         [SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.SerializationFormatter)]
         public override void GetObjectData(SerializationInfo info, StreamingContext context) => base.GetObjectData(info, context);
+
+        #endregion
     }
 }
 

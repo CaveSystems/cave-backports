@@ -8,7 +8,11 @@ namespace System.Linq
     public interface IGrouping<TKey, TElement> : IEnumerable<TElement>
 
     {
+        #region Properties
+
         TKey Key { get; }
+
+        #endregion
     }
 }
 

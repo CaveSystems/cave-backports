@@ -8,14 +8,280 @@ namespace System.Linq
 {
     public static class BackportedExtensions
     {
+        #region Static
+
+        #region All
+
+        public static bool All<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate) => !source.Any(i => !predicate(i));
+
+        #endregion
+
+        #region AsEnumerable
+
+        public static IEnumerable<TSource> AsEnumerable<TSource>(this IEnumerable<TSource> source) => source;
+
+        #endregion
+
+        #region Cast
+
+        public static IEnumerable<TResult> Cast<TResult>(this IEnumerable source)
+        {
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+            if (source is IEnumerable<TResult> result)
+            {
+                return result;
+            }
+
+            IEnumerable<TResult> Iterator()
+            {
+                foreach (TResult element in source)
+                {
+                    yield return element;
+                }
+            }
+
+            return Iterator();
+        }
+
+        #endregion
+
+        #region Concat
+
+        public static IEnumerable<TSource> Concat<TSource>(this IEnumerable<TSource> first, IEnumerable<TSource> second)
+        {
+            if (first == null)
+            {
+                throw new ArgumentNullException(nameof(first));
+            }
+            if (second == null)
+            {
+                throw new ArgumentNullException(nameof(second));
+            }
+
+            IEnumerable<TSource> Iterator()
+            {
+                foreach (var element in first)
+                {
+                    yield return element;
+                }
+
+                foreach (var element in second)
+                {
+                    yield return element;
+                }
+            }
+
+            return Iterator();
+        }
+
+        #endregion
+
+        #region ElementAtOrDefault
+
+        public static TSource ElementAtOrDefault<TSource>(this IEnumerable<TSource> source, int index)
+            => source.ElementAt(index, () => default);
+
+        #endregion
+
+        #region Empty
+
+        public static IEnumerable<TResult> Empty<TResult>() => new TResult[0];
+
+        #endregion
+
+        #region LastOrDefault
+
+        public static TSource LastOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
+            => Last(source, predicate, default);
+
+        #endregion
+
+        #region OfType
+
+        public static IEnumerable<TResult> OfType<TResult>(this IEnumerable source)
+        {
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            IEnumerable<TResult> Iterator()
+            {
+                foreach (var element in source)
+                {
+                    if (element is TResult result)
+                    {
+                        yield return result;
+                    }
+                }
+            }
+
+            return Iterator();
+        }
+
+        #endregion
+
+        #region Range
+
+        public static IEnumerable<int> Range(int start, int count)
+        {
+            if (count < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(count));
+            }
+
+            IEnumerable<int> Iterator()
+            {
+                var n = start;
+                for (var i = 0; i < count; i++, n = checked(n + 1))
+                {
+                    yield return n;
+                }
+            }
+
+            return Iterator();
+        }
+
+        #endregion
+
+        #region Repeat
+
+        public static IEnumerable<TResult> Repeat<TResult>(TResult element, int count)
+        {
+            if (count < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(count));
+            }
+
+            IEnumerable<TResult> Iterator()
+            {
+                for (var i = 0; i < count; i++)
+                {
+                    yield return element;
+                }
+            }
+
+            return Iterator();
+        }
+
+        #endregion
+
+        #region Reverse
+
+        public static IEnumerable<TSource> Reverse<TSource>(this IEnumerable<TSource> source)
+        {
+            var list = source.ToList();
+            list.Reverse();
+            return list;
+        }
+
+        #endregion
+
+        #region Skip
+
+        public static IEnumerable<TSource> Skip<TSource>(this IEnumerable<TSource> source, int count)
+        {
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            IEnumerable<TSource> Iterator()
+            {
+                using var enumerator = source.GetEnumerator();
+                while (count-- > 0)
+                {
+                    if (!enumerator.MoveNext())
+                    {
+                        yield break;
+                    }
+                }
+
+                while (enumerator.MoveNext())
+                {
+                    yield return enumerator.Current;
+                }
+            }
+
+            return Iterator();
+        }
+
+        #endregion
+
+        #region Take
+
+        public static IEnumerable<TSource> Take<TSource>(this IEnumerable<TSource> source, int count)
+        {
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            IEnumerable<TSource> Iterator()
+            {
+                if (count <= 0)
+                {
+                    yield break;
+                }
+
+                var counter = 0;
+                foreach (var element in source)
+                {
+                    if (counter++ == count)
+                    {
+                        yield break;
+                    }
+                    yield return element;
+                }
+            }
+
+            return Iterator();
+        }
+
+        #endregion
+
+        #region ToArray
+
+        public static TSource[] ToArray<TSource>(this IEnumerable<TSource> source)
+        {
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+            if (source is ICollection collection)
+            {
+                var result = new TSource[collection.Count];
+                collection.CopyTo(result, 0);
+                return result;
+            }
+
+            return source.ToList().ToArray();
+        }
+
+        #endregion
+
+        #region ToList
+
+        public static List<TSource> ToList<TSource>(this IEnumerable<TSource> source) => source is List<TSource> list ? list : new(source);
+
+        #endregion
+
         static TResult ThrowSequenceEmpty<TResult>() => throw new InvalidOperationException("The source sequence is empty.");
+
+        #endregion
 
         #region Aggregate
 
         public static TResult Aggregate<TSource, TAccumulate, TResult>(this IEnumerable<TSource> source, TAccumulate seed,
             Func<TAccumulate, TSource, TAccumulate> func, Func<TAccumulate, TResult> resultSelector)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
             var empty = true;
             var accu = seed;
             foreach (var item in source)
@@ -29,16 +295,10 @@ namespace System.Linq
 
         public static TAccumulate Aggregate<TSource, TAccumulate>(this IEnumerable<TSource> source, TAccumulate seed,
             Func<TAccumulate, TSource, TAccumulate> func)
-            => Aggregate(source, seed, func, (a) => a);
+            => Aggregate(source, seed, func, a => a);
 
         public static TSource Aggregate<TSource>(this IEnumerable<TSource> source, Func<TSource, TSource, TSource> func)
-            => Aggregate(source, default, func, (a) => a);
-
-        #endregion
-
-        #region All
-
-        public static bool All<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate) => !source.Any((i) => !predicate(i));
+            => Aggregate(source, default, func, a => a);
 
         #endregion
 
@@ -46,7 +306,10 @@ namespace System.Linq
 
         public static bool Any<TSource>(this IEnumerable<TSource> source)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
             foreach (var _ in source)
             {
                 return true;
@@ -57,7 +320,10 @@ namespace System.Linq
 
         public static bool Any<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
             foreach (var item in source)
             {
                 if (predicate(item))
@@ -68,12 +334,6 @@ namespace System.Linq
 
             return false;
         }
-
-        #endregion
-
-        #region AsEnumerable
-
-        public static IEnumerable<TSource> AsEnumerable<TSource>(this IEnumerable<TSource> source) => source;
 
         #endregion
 
@@ -201,7 +461,7 @@ namespace System.Linq
                 selector);
 
         public static double Average<TSource>(this IEnumerable<TSource> source, Func<TSource, double> selector)
-            => CalcAverageWithSelector<TSource, double, double, double>(source, (total, value) => checked(total + value), (total, count) => total / count,
+            => CalcAverageWithSelector<TSource, double, double, double>(source, (total, value) => total + value, (total, count) => total / count,
                 selector);
 
         public static double? Average<TSource>(this IEnumerable<TSource> source, Func<TSource, double?> selector)
@@ -209,7 +469,7 @@ namespace System.Linq
                 (total, count) => total / count, selector);
 
         public static float Average<TSource>(this IEnumerable<TSource> source, Func<TSource, float> selector)
-            => CalcAverageWithSelector<TSource, float, float, float>(source, (total, value) => checked(total + value), (total, count) => total / count,
+            => CalcAverageWithSelector<TSource, float, float, float>(source, (total, value) => total + value, (total, count) => total / count,
                 selector);
 
         public static float? Average<TSource>(this IEnumerable<TSource> source, Func<TSource, float?> selector)
@@ -217,59 +477,12 @@ namespace System.Linq
                 selector);
 
         public static decimal Average<TSource>(this IEnumerable<TSource> source, Func<TSource, decimal> selector)
-            => CalcAverageWithSelector<TSource, decimal, decimal, decimal>(source, (total, value) => checked(total + value), (total, count) => total / count,
+            => CalcAverageWithSelector<TSource, decimal, decimal, decimal>(source, (total, value) => total + value, (total, count) => total / count,
                 selector);
 
         public static decimal? Average<TSource>(this IEnumerable<TSource> source, Func<TSource, decimal?> selector)
             => CalcAverageWithSelector<TSource, decimal, decimal?, decimal?>(source, (total, value) => checked(total + value ?? 0),
                 (total, count) => total / count, selector);
-
-        #endregion
-
-        #region Cast
-
-        public static IEnumerable<TResult> Cast<TResult>(this IEnumerable source)
-        {
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            if (source is IEnumerable<TResult> result)
-            {
-                return result;
-            }
-
-            IEnumerable<TResult> Iterator()
-            {
-                foreach (TResult element in source)
-                {
-                    yield return element;
-                }
-            }
-
-            return Iterator();
-        }
-
-        #endregion
-
-        #region Concat
-
-        public static IEnumerable<TSource> Concat<TSource>(this IEnumerable<TSource> first, IEnumerable<TSource> second)
-        {
-            if (first == null) throw new ArgumentNullException(nameof(first));
-            if (second == null) throw new ArgumentNullException(nameof(second));
-            IEnumerable<TSource> Iterator()
-            {
-                foreach (var element in first)
-                {
-                    yield return element;
-                }
-
-                foreach (var element in second)
-                {
-                    yield return element;
-                }
-            }
-
-            return Iterator();
-        }
 
         #endregion
 
@@ -281,7 +494,7 @@ namespace System.Linq
         {
             comparer ??= EqualityComparer<TSource>.Default;
 
-            return source.Any((i) => comparer.Equals(i, value));
+            return source.Any(i => comparer.Equals(i, value));
         }
 
         #endregion
@@ -290,21 +503,22 @@ namespace System.Linq
 
         public static int Count<TSource>(this IEnumerable<TSource> source)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
             if (source is ICollection<TSource> collection)
             {
                 return collection.Count;
             }
 
             var counter = 0;
-            using (var enumerator = source.GetEnumerator())
+            using var enumerator = source.GetEnumerator();
+            while (enumerator.MoveNext())
             {
-                while (enumerator.MoveNext())
+                checked
                 {
-                    checked
-                    {
-                        counter++;
-                    }
+                    counter++;
                 }
             }
 
@@ -313,7 +527,10 @@ namespace System.Linq
 
         public static int Count<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
             var counter = 0;
             foreach (var element in source)
             {
@@ -337,7 +554,11 @@ namespace System.Linq
 
         public static IEnumerable<TSource> DefaultIfEmpty<TSource>(this IEnumerable<TSource> source, TSource defaultValue)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             IEnumerable<TSource> Iterator()
             {
                 var empty = true;
@@ -360,11 +581,14 @@ namespace System.Linq
 
         #region Distinct
 
-        public static IEnumerable<TSource> Distinct<TSource>(this IEnumerable<TSource> source) => Distinct<TSource>(source, null);
+        public static IEnumerable<TSource> Distinct<TSource>(this IEnumerable<TSource> source) => Distinct(source, null);
 
         public static IEnumerable<TSource> Distinct<TSource>(this IEnumerable<TSource> source, IEqualityComparer<TSource> comparer)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
             comparer ??= EqualityComparer<TSource>.Default;
 
             IEnumerable<TSource> Iterator()
@@ -416,19 +640,6 @@ namespace System.Linq
 
         #endregion
 
-        #region ElementAtOrDefault
-
-        public static TSource ElementAtOrDefault<TSource>(this IEnumerable<TSource> source, int index)
-            => source.ElementAt(index, () => default);
-
-        #endregion
-
-        #region Empty
-
-        public static IEnumerable<TResult> Empty<TResult>() => new TResult[0];
-
-        #endregion
-
         #region Except
 
         public static IEnumerable<TSource> Except<TSource>(this IEnumerable<TSource> first, IEnumerable<TSource> second)
@@ -436,8 +647,14 @@ namespace System.Linq
 
         public static IEnumerable<TSource> Except<TSource>(this IEnumerable<TSource> first, IEnumerable<TSource> second, IEqualityComparer<TSource> comparer)
         {
-            if (first == null) throw new ArgumentNullException(nameof(first));
-            if (second == null) throw new ArgumentNullException(nameof(second));
+            if (first == null)
+            {
+                throw new ArgumentNullException(nameof(first));
+            }
+            if (second == null)
+            {
+                throw new ArgumentNullException(nameof(second));
+            }
             comparer ??= EqualityComparer<TSource>.Default;
 
             IEnumerable<TSource> Iterator()
@@ -501,7 +718,11 @@ namespace System.Linq
         public static IEnumerable<IGrouping<TKey, TSource>> GroupBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector,
             IEqualityComparer<TKey> comparer)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             IEnumerable<IGrouping<TKey, TSource>> Iterator()
             {
                 var groups = new Dictionary<TKey, List<TSource>>(comparer);
@@ -511,7 +732,7 @@ namespace System.Linq
                     var key = keySelector(element);
                     if (key == null)
                     {
-                        defaultList ??= new List<TSource>();
+                        defaultList ??= new();
 
                         defaultList.Add(element);
                     }
@@ -519,7 +740,7 @@ namespace System.Linq
                     {
                         if (!groups.TryGetValue(key, out var group))
                         {
-                            group = new List<TSource>();
+                            group = new();
                             groups.Add(key, group);
                         }
 
@@ -547,9 +768,18 @@ namespace System.Linq
         public static IEnumerable<IGrouping<TKey, TElement>> GroupBy<TSource, TKey, TElement>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector,
             Func<TSource, TElement> elementSelector, IEqualityComparer<TKey> comparer)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            if (keySelector == null) throw new ArgumentNullException(nameof(keySelector));
-            if (elementSelector == null) throw new ArgumentNullException(nameof(elementSelector));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+            if (keySelector == null)
+            {
+                throw new ArgumentNullException(nameof(keySelector));
+            }
+            if (elementSelector == null)
+            {
+                throw new ArgumentNullException(nameof(elementSelector));
+            }
 
             IEnumerable<IGrouping<TKey, TElement>> Iterator()
             {
@@ -561,7 +791,7 @@ namespace System.Linq
                     var element = elementSelector(item);
                     if (key == null)
                     {
-                        defaultList ??= new List<TElement>();
+                        defaultList ??= new();
 
                         defaultList.Add(element);
                     }
@@ -569,7 +799,7 @@ namespace System.Linq
                     {
                         if (!groups.TryGetValue(key, out var group))
                         {
-                            group = new List<TElement>();
+                            group = new();
                             groups.Add(key, group);
                         }
 
@@ -645,18 +875,34 @@ namespace System.Linq
             Func<TOuter, TKey> outerKeySelector, Func<TInner, TKey> innerKeySelector, Func<TOuter, IEnumerable<TInner>, TResult> resultSelector,
             IEqualityComparer<TKey> comparer)
         {
-            if (outer == null) throw new ArgumentNullException(nameof(outer));
-            if (inner == null) throw new ArgumentNullException(nameof(inner));
-            if (outerKeySelector == null) throw new ArgumentNullException(nameof(outerKeySelector));
-            if (innerKeySelector == null) throw new ArgumentNullException(nameof(innerKeySelector));
-            if (resultSelector == null) throw new ArgumentNullException(nameof(resultSelector));
+            if (outer == null)
+            {
+                throw new ArgumentNullException(nameof(outer));
+            }
+            if (inner == null)
+            {
+                throw new ArgumentNullException(nameof(inner));
+            }
+            if (outerKeySelector == null)
+            {
+                throw new ArgumentNullException(nameof(outerKeySelector));
+            }
+            if (innerKeySelector == null)
+            {
+                throw new ArgumentNullException(nameof(innerKeySelector));
+            }
+            if (resultSelector == null)
+            {
+                throw new ArgumentNullException(nameof(resultSelector));
+            }
+
             IEnumerable<TResult> Iterator()
             {
                 var innerKeys = ToLookup(inner, innerKeySelector, comparer);
                 foreach (var element in outer)
                 {
                     var outerKey = outerKeySelector(element);
-                    yield return outerKey != null && innerKeys.Contains(outerKey)
+                    yield return (outerKey != null) && innerKeys.Contains(outerKey)
                         ? resultSelector(element, innerKeys[outerKey])
                         : resultSelector(element, Empty<TInner>());
                 }
@@ -673,8 +919,14 @@ namespace System.Linq
 
         public static IEnumerable<TSource> Intersect<TSource>(this IEnumerable<TSource> first, IEnumerable<TSource> second, IEqualityComparer<TSource> comparer)
         {
-            if (first == null) throw new ArgumentNullException(nameof(first));
-            if (second == null) throw new ArgumentNullException(nameof(second));
+            if (first == null)
+            {
+                throw new ArgumentNullException(nameof(first));
+            }
+            if (second == null)
+            {
+                throw new ArgumentNullException(nameof(second));
+            }
             comparer ??= EqualityComparer<TSource>.Default;
 
             IEnumerable<TSource> Iterator()
@@ -708,11 +960,26 @@ namespace System.Linq
             Func<TOuter, TKey> outerKeySelector, Func<TInner, TKey> innerKeySelector, Func<TOuter, TInner, TResult> resultSelector,
             IEqualityComparer<TKey> comparer)
         {
-            if (outer == null) throw new ArgumentNullException(nameof(outer));
-            if (inner == null) throw new ArgumentNullException(nameof(inner));
-            if (outerKeySelector == null) throw new ArgumentNullException(nameof(outerKeySelector));
-            if (innerKeySelector == null) throw new ArgumentNullException(nameof(innerKeySelector));
-            if (resultSelector == null) throw new ArgumentNullException(nameof(resultSelector));
+            if (outer == null)
+            {
+                throw new ArgumentNullException(nameof(outer));
+            }
+            if (inner == null)
+            {
+                throw new ArgumentNullException(nameof(inner));
+            }
+            if (outerKeySelector == null)
+            {
+                throw new ArgumentNullException(nameof(outerKeySelector));
+            }
+            if (innerKeySelector == null)
+            {
+                throw new ArgumentNullException(nameof(innerKeySelector));
+            }
+            if (resultSelector == null)
+            {
+                throw new ArgumentNullException(nameof(resultSelector));
+            }
             comparer ??= EqualityComparer<TKey>.Default;
 
             IEnumerable<TResult> Iterator()
@@ -721,7 +988,7 @@ namespace System.Linq
                 foreach (var element in outer)
                 {
                     var outerKey = outerKeySelector(element);
-                    if (outerKey != null && innerKeys.Contains(outerKey))
+                    if ((outerKey != null) && innerKeys.Contains(outerKey))
                     {
                         foreach (var innerElement in innerKeys[outerKey])
                         {
@@ -744,7 +1011,7 @@ namespace System.Linq
 
         static TSource Last<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate, Func<TSource> defaultValue)
         {
-            if (predicate == null && source is IList<TSource> list)
+            if ((predicate == null) && source is IList<TSource> list)
             {
                 return list[list.Count - 1];
             }
@@ -754,7 +1021,7 @@ namespace System.Linq
 
             foreach (var element in source)
             {
-                if (predicate != null && !predicate(element))
+                if ((predicate != null) && !predicate(element))
                 {
                     continue;
                 }
@@ -779,20 +1046,16 @@ namespace System.Linq
 
         #endregion
 
-        #region LastOrDefault
-
-        public static TSource LastOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
-            => Last(source, predicate, default);
-
-        #endregion
-
         #region LongCount
 
         public static long LongCount<TSource>(this IEnumerable<TSource> source) => source is Array array ? array.LongLength : LongCount(source, null);
 
         public static long LongCount<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
             long counter = 0;
             foreach (var item in source)
             {
@@ -815,7 +1078,10 @@ namespace System.Linq
         static TResult CalcMinOrMax<TSource, TResult>(this IEnumerable<TSource> source, Func<TResult, TResult, TResult> func, Func<TResult> defaultValue,
             Func<TSource, TResult> selector)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
             var empty = true;
             TResult max = default;
             foreach (var element in source)
@@ -841,34 +1107,34 @@ namespace System.Linq
         }
 
         public static int Max(this IEnumerable<int> source)
-            => CalcMinOrMax(source, (element, max) => element > max ? element : max, ThrowSequenceEmpty<int>, (i) => i);
+            => CalcMinOrMax(source, (element, max) => element > max ? element : max, ThrowSequenceEmpty<int>, i => i);
 
         public static long Max(this IEnumerable<long> source)
-            => CalcMinOrMax(source, (element, max) => element > max ? element : max, ThrowSequenceEmpty<long>, (i) => i);
+            => CalcMinOrMax(source, (element, max) => element > max ? element : max, ThrowSequenceEmpty<long>, i => i);
 
         public static decimal Max(this IEnumerable<decimal> source)
-            => CalcMinOrMax(source, (element, max) => element > max ? element : max, ThrowSequenceEmpty<decimal>, (i) => i);
+            => CalcMinOrMax(source, (element, max) => element > max ? element : max, ThrowSequenceEmpty<decimal>, i => i);
 
         public static double Max(this IEnumerable<double> source)
-            => CalcMinOrMax(source, (element, max) => element > max ? element : max, ThrowSequenceEmpty<double>, (i) => i);
+            => CalcMinOrMax(source, (element, max) => element > max ? element : max, ThrowSequenceEmpty<double>, i => i);
 
         public static float Max(this IEnumerable<float> source)
-            => CalcMinOrMax(source, (element, max) => element > max ? element : max, ThrowSequenceEmpty<float>, (i) => i);
+            => CalcMinOrMax(source, (element, max) => element > max ? element : max, ThrowSequenceEmpty<float>, i => i);
 
         public static long? Max(this IEnumerable<long?> source)
-            => CalcMinOrMax(source, (element, max) => element > max ? element : max, () => null, (i) => i);
+            => CalcMinOrMax(source, (element, max) => element > max ? element : max, () => null, i => i);
 
         public static int? Max(this IEnumerable<int?> source)
-            => CalcMinOrMax(source, (element, max) => element > max ? element : max, () => null, (i) => i);
+            => CalcMinOrMax(source, (element, max) => element > max ? element : max, () => null, i => i);
 
         public static decimal? Max(this IEnumerable<decimal?> source)
-            => CalcMinOrMax(source, (element, max) => element > max ? element : max, () => null, (i) => i);
+            => CalcMinOrMax(source, (element, max) => element > max ? element : max, () => null, i => i);
 
         public static double? Max(this IEnumerable<double?> source)
-            => CalcMinOrMax(source, (element, max) => element > max ? element : max, () => null, (i) => i);
+            => CalcMinOrMax(source, (element, max) => element > max ? element : max, () => null, i => i);
 
         public static float? Max(this IEnumerable<float?> source)
-            => CalcMinOrMax(source, (element, max) => element > max ? element : max, () => null, (i) => i);
+            => CalcMinOrMax(source, (element, max) => element > max ? element : max, () => null, i => i);
 
         public static TResult Max<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
         {
@@ -922,34 +1188,34 @@ namespace System.Linq
         #region Min
 
         public static int Min(this IEnumerable<int> source)
-            => CalcMinOrMax(source, (element, max) => element < max ? element : max, ThrowSequenceEmpty<int>, (i) => i);
+            => CalcMinOrMax(source, (element, max) => element < max ? element : max, ThrowSequenceEmpty<int>, i => i);
 
         public static long Min(this IEnumerable<long> source)
-            => CalcMinOrMax(source, (element, max) => element < max ? element : max, ThrowSequenceEmpty<long>, (i) => i);
+            => CalcMinOrMax(source, (element, max) => element < max ? element : max, ThrowSequenceEmpty<long>, i => i);
 
         public static decimal Min(this IEnumerable<decimal> source)
-            => CalcMinOrMax(source, (element, max) => element < max ? element : max, ThrowSequenceEmpty<decimal>, (i) => i);
+            => CalcMinOrMax(source, (element, max) => element < max ? element : max, ThrowSequenceEmpty<decimal>, i => i);
 
         public static double Min(this IEnumerable<double> source)
-            => CalcMinOrMax(source, (element, max) => element < max ? element : max, ThrowSequenceEmpty<double>, (i) => i);
+            => CalcMinOrMax(source, (element, max) => element < max ? element : max, ThrowSequenceEmpty<double>, i => i);
 
         public static float Min(this IEnumerable<float> source)
-            => CalcMinOrMax(source, (element, max) => element < max ? element : max, ThrowSequenceEmpty<float>, (i) => i);
+            => CalcMinOrMax(source, (element, max) => element < max ? element : max, ThrowSequenceEmpty<float>, i => i);
 
         public static long? Min(this IEnumerable<long?> source)
-            => CalcMinOrMax(source, (element, max) => element < max ? element : max, () => null, (i) => i);
+            => CalcMinOrMax(source, (element, max) => element < max ? element : max, () => null, i => i);
 
         public static int? Min(this IEnumerable<int?> source)
-            => CalcMinOrMax(source, (element, max) => element < max ? element : max, () => null, (i) => i);
+            => CalcMinOrMax(source, (element, max) => element < max ? element : max, () => null, i => i);
 
         public static decimal? Min(this IEnumerable<decimal?> source)
-            => CalcMinOrMax(source, (element, max) => element < max ? element : max, () => null, (i) => i);
+            => CalcMinOrMax(source, (element, max) => element < max ? element : max, () => null, i => i);
 
         public static double? Min(this IEnumerable<double?> source)
-            => CalcMinOrMax(source, (element, max) => element < max ? element : max, () => null, (i) => i);
+            => CalcMinOrMax(source, (element, max) => element < max ? element : max, () => null, i => i);
 
         public static float? Min(this IEnumerable<float?> source)
-            => CalcMinOrMax(source, (element, max) => element < max ? element : max, () => null, (i) => i);
+            => CalcMinOrMax(source, (element, max) => element < max ? element : max, () => null, i => i);
 
         public static TResult Min<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
         {
@@ -1000,27 +1266,6 @@ namespace System.Linq
 
         #endregion
 
-        #region OfType
-
-        public static IEnumerable<TResult> OfType<TResult>(this IEnumerable source)
-        {
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            IEnumerable<TResult> Iterator()
-            {
-                foreach (var element in source)
-                {
-                    if (element is TResult result)
-                    {
-                        yield return result;
-                    }
-                }
-            }
-
-            return Iterator();
-        }
-
-        #endregion
-
         #region OrderBy
 
         public static IOrderedEnumerable<TSource> OrderBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
@@ -1043,67 +1288,15 @@ namespace System.Linq
 
         #endregion
 
-        #region Range
-
-        public static IEnumerable<int> Range(int start, int count)
-        {
-            if (count < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(count));
-            }
-
-            IEnumerable<int> Iterator()
-            {
-                var n = start;
-                for (var i = 0; i < count; i++, n = checked(n + 1))
-                {
-                    yield return n;
-                }
-            }
-
-            return Iterator();
-        }
-
-        #endregion
-
-        #region Repeat
-
-        public static IEnumerable<TResult> Repeat<TResult>(TResult element, int count)
-        {
-            if (count < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(count));
-            }
-
-            IEnumerable<TResult> Iterator()
-            {
-                for (var i = 0; i < count; i++)
-                {
-                    yield return element;
-                }
-            }
-
-            return Iterator();
-        }
-
-        #endregion
-
-        #region Reverse
-
-        public static IEnumerable<TSource> Reverse<TSource>(this IEnumerable<TSource> source)
-        {
-            var list = source.ToList();
-            list.Reverse();
-            return list;
-        }
-
-        #endregion
-
         #region Select
 
         public static IEnumerable<TResult> Select<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             IEnumerable<TResult> Iterator()
             {
                 foreach (var element in source)
@@ -1117,7 +1310,11 @@ namespace System.Linq
 
         public static IEnumerable<TResult> Select<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, int, TResult> selector)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             IEnumerable<TResult> Iterator()
             {
                 var counter = 0;
@@ -1137,7 +1334,11 @@ namespace System.Linq
 
         public static IEnumerable<TResult> SelectMany<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, IEnumerable<TResult>> selector)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             IEnumerable<TResult> Iterator()
             {
                 foreach (var element in source)
@@ -1154,7 +1355,11 @@ namespace System.Linq
 
         public static IEnumerable<TResult> SelectMany<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, int, IEnumerable<TResult>> selector)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             IEnumerable<TResult> Iterator()
             {
                 var counter = 0;
@@ -1175,7 +1380,11 @@ namespace System.Linq
         public static IEnumerable<TResult> SelectMany<TSource, TCollection, TResult>(this IEnumerable<TSource> source,
             Func<TSource, IEnumerable<TCollection>> collectionSelector, Func<TSource, TCollection, TResult> resultSelector)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             IEnumerable<TResult> Iterator()
             {
                 foreach (var element in source)
@@ -1193,7 +1402,11 @@ namespace System.Linq
         public static IEnumerable<TResult> SelectMany<TSource, TCollection, TResult>(this IEnumerable<TSource> source,
             Func<TSource, int, IEnumerable<TCollection>> collectionSelector, Func<TSource, TCollection, TResult> resultSelector)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             IEnumerable<TResult> Iterator()
             {
                 var counter = 0;
@@ -1215,7 +1428,10 @@ namespace System.Linq
 
         static TSource Single<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate, Func<TSource> defaultValue)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
             var found = false;
             var item = default(TSource);
             foreach (var element in source)
@@ -1243,7 +1459,7 @@ namespace System.Linq
         }
 
         public static TSource Single<TSource>(this IEnumerable<TSource> source)
-            => Single(source, (i) => true, ThrowSequenceEmpty<TSource>);
+            => Single(source, i => true, ThrowSequenceEmpty<TSource>);
 
         public static TSource Single<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
             => Single(source, predicate, () => throw new InvalidOperationException("No element satisfies the condition in predicate."));
@@ -1253,38 +1469,10 @@ namespace System.Linq
         #region SingleOrDefault
 
         public static TSource SingleOrDefault<TSource>(this IEnumerable<TSource> source)
-            => Single(source, (i) => true, () => default);
-
+            => Single(source, i => true, () => default);
 
         public static TSource SingleOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
             => Single(source, predicate, () => default);
-
-        #endregion
-
-        #region Skip
-
-        public static IEnumerable<TSource> Skip<TSource>(this IEnumerable<TSource> source, int count)
-        {
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            IEnumerable<TSource> Iterator()
-            {
-                using var enumerator = source.GetEnumerator();
-                while (count-- > 0)
-                {
-                    if (!enumerator.MoveNext())
-                    {
-                        yield break;
-                    }
-                }
-
-                while (enumerator.MoveNext())
-                {
-                    yield return enumerator.Current;
-                }
-            }
-
-            return Iterator();
-        }
 
         #endregion
 
@@ -1292,7 +1480,11 @@ namespace System.Linq
 
         public static IEnumerable<TSource> SkipWhile<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             IEnumerable<TSource> Iterator()
             {
                 var yield = false;
@@ -1315,7 +1507,11 @@ namespace System.Linq
 
         public static IEnumerable<TSource> SkipWhile<TSource>(this IEnumerable<TSource> source, Func<TSource, int, bool> predicate)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             IEnumerable<TSource> Iterator()
             {
                 var counter = 0;
@@ -1346,7 +1542,10 @@ namespace System.Linq
 
         static TSource CalcSum<TSource>(this IEnumerable<TSource> source, Func<TSource, TSource, TSource> calc)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
             TSource result = default;
             foreach (var element in source)
             {
@@ -1358,7 +1557,10 @@ namespace System.Linq
 
         static TResult CalcSum<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector, Func<TResult, TResult, TResult> calc)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
             TResult result = default;
             foreach (var element in source)
             {
@@ -1434,42 +1636,15 @@ namespace System.Linq
 
         #endregion
 
-        #region Take
-
-        public static IEnumerable<TSource> Take<TSource>(this IEnumerable<TSource> source, int count)
-        {
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            IEnumerable<TSource> Iterator()
-            {
-                if (count <= 0)
-                {
-                    yield break;
-                }
-
-                var counter = 0;
-                foreach (var element in source)
-                {
-                    if (counter++ == count)
-                    {
-                        yield break;
-                    }
-                    else
-                    {
-                        yield return element;
-                    }
-                }
-            }
-
-            return Iterator();
-        }
-
-        #endregion
-
         #region TakeWhile
 
         public static IEnumerable<TSource> TakeWhile<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             IEnumerable<TSource> Iterator()
             {
                 foreach (var element in source)
@@ -1490,7 +1665,11 @@ namespace System.Linq
 
         public static IEnumerable<TSource> TakeWhile<TSource>(this IEnumerable<TSource> source, Func<TSource, int, bool> predicate)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             IEnumerable<TSource> Iterator()
             {
                 var counter = 0;
@@ -1527,30 +1706,16 @@ namespace System.Linq
 
         #endregion
 
-        #region ToArray
-
-        public static TSource[] ToArray<TSource>(this IEnumerable<TSource> source)
-        {
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            if (source is ICollection collection)
-            {
-                var result = new TSource[collection.Count];
-                collection.CopyTo(result, 0);
-                return result;
-            }
-
-            return source.ToList().ToArray();
-        }
-
-        #endregion
-
         #region ToDictionary
 
         public static Dictionary<TKey, TElement> ToDictionary<TSource, TKey, TElement>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector,
             Func<TSource, TElement> elementSelector, IEqualityComparer<TKey> comparer)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
-            var result = comparer == null ? new Dictionary<TKey, TElement>() : new Dictionary<TKey, TElement>(comparer);
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+            var result = comparer == null ? new() : new Dictionary<TKey, TElement>(comparer);
             foreach (var e in source)
             {
                 result.Add(keySelector(e), elementSelector(e));
@@ -1568,13 +1733,7 @@ namespace System.Linq
 
         public static Dictionary<TKey, TSource> ToDictionary<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector,
             IEqualityComparer<TKey> comparer)
-            => ToDictionary(source, keySelector, (i) => i, comparer);
-
-        #endregion
-
-        #region ToList
-
-        public static List<TSource> ToList<TSource>(this IEnumerable<TSource> source) => source is List<TSource> list ? list : new List<TSource>(source);
+            => ToDictionary(source, keySelector, i => i, comparer);
 
         #endregion
 
@@ -1583,7 +1742,10 @@ namespace System.Linq
         public static ILookup<TKey, TElement> ToLookup<TSource, TKey, TElement>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector,
             Func<TSource, TElement> elementSelector, IEqualityComparer<TKey> comparer)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
             List<TElement> defaultKeyElements = null;
             var lookup = new Dictionary<TKey, List<TElement>>(comparer ?? EqualityComparer<TKey>.Default);
             foreach (var element in source)
@@ -1592,13 +1754,13 @@ namespace System.Linq
                 var key = keySelector(element);
                 if (key == null)
                 {
-                    defaultKeyElements ??= new List<TElement>();
+                    defaultKeyElements ??= new();
 
                     list = defaultKeyElements;
                 }
                 else if (!lookup.TryGetValue(key, out list))
                 {
-                    list = new List<TElement>();
+                    list = new();
                     lookup.Add(key, list);
                 }
 
@@ -1609,11 +1771,11 @@ namespace System.Linq
         }
 
         public static ILookup<TKey, TSource> ToLookup<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
-            => ToLookup(source, keySelector, (i) => i, null);
+            => ToLookup(source, keySelector, i => i, null);
 
         public static ILookup<TKey, TSource> ToLookup<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector,
             IEqualityComparer<TKey> comparer)
-            => ToLookup(source, keySelector, (i) => i, comparer);
+            => ToLookup(source, keySelector, i => i, comparer);
 
         public static ILookup<TKey, TElement> ToLookup<TSource, TKey, TElement>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector,
             Func<TSource, TElement> elementSelector)
@@ -1625,8 +1787,14 @@ namespace System.Linq
 
         public static bool SequenceEqual<TSource>(this IEnumerable<TSource> first, IEnumerable<TSource> second, IEqualityComparer<TSource> comparer)
         {
-            if (first == null) throw new ArgumentNullException(nameof(first));
-            if (second == null) throw new ArgumentNullException(nameof(second));
+            if (first == null)
+            {
+                throw new ArgumentNullException(nameof(first));
+            }
+            if (second == null)
+            {
+                throw new ArgumentNullException(nameof(second));
+            }
             comparer ??= EqualityComparer<TSource>.Default;
 
             using var firstEnumerator = first.GetEnumerator();
@@ -1658,8 +1826,14 @@ namespace System.Linq
 
         public static IEnumerable<TSource> Union<TSource>(this IEnumerable<TSource> first, IEnumerable<TSource> second, IEqualityComparer<TSource> comparer)
         {
-            if (first == null) throw new ArgumentNullException(nameof(first));
-            if (second == null) throw new ArgumentNullException(nameof(second));
+            if (first == null)
+            {
+                throw new ArgumentNullException(nameof(first));
+            }
+            if (second == null)
+            {
+                throw new ArgumentNullException(nameof(second));
+            }
             comparer ??= EqualityComparer<TSource>.Default;
 
             IEnumerable<TSource> Iterator()
@@ -1693,7 +1867,11 @@ namespace System.Linq
 
         public static IEnumerable<TSource> Where<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             IEnumerable<TSource> Iterator()
             {
                 foreach (var element in source)
@@ -1710,7 +1888,11 @@ namespace System.Linq
 
         public static IEnumerable<TSource> Where<TSource>(this IEnumerable<TSource> source, Func<TSource, int, bool> predicate)
         {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
             IEnumerable<TSource> Iterator()
             {
                 var counter = 0;

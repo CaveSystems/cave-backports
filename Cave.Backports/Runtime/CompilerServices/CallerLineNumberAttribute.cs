@@ -2,7 +2,7 @@
 
 namespace System.Runtime.CompilerServices;
 
-[AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+[AttributeUsage(AttributeTargets.Parameter)]
 public sealed class CallerLineNumberAttribute : Attribute { }
 
 #endif

@@ -7,13 +7,19 @@ namespace System.Collections.ObjectModel;
 
 public class ReadOnlyCollectionWrapper<TValue> : ICollection<TValue>
 {
+    #region Fields
+
     readonly ICollection<TValue> col;
+
+    #endregion
+
+    #region Constructors
 
     public ReadOnlyCollectionWrapper(ICollection<TValue> collection) => col = collection;
 
-    public int Count => col.Count;
+    #endregion
 
-    public bool IsReadOnly => true;
+    #region ICollection<TValue> Members
 
     public void Add(TValue item) => throw new ReadOnlyException();
 
@@ -23,11 +29,17 @@ public class ReadOnlyCollectionWrapper<TValue> : ICollection<TValue>
 
     public void CopyTo(TValue[] array, int arrayIndex) => col.CopyTo(array, arrayIndex);
 
-    public IEnumerator<TValue> GetEnumerator() => col.GetEnumerator();
+    public int Count => col.Count;
+
+    public bool IsReadOnly => true;
 
     public bool Remove(TValue item) => throw new ReadOnlyException();
 
     IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)col).GetEnumerator();
+
+    public IEnumerator<TValue> GetEnumerator() => col.GetEnumerator();
+
+    #endregion
 }
 
 #endif

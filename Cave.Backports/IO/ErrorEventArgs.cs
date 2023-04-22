@@ -1,5 +1,4 @@
 ﻿#if NETSTANDARD1_0
-
 namespace System.IO
 {
     public class ErrorEventArgs : EventArgs

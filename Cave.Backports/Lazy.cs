@@ -9,32 +9,30 @@ namespace System
     [DebuggerDisplay("ThreadSafetyMode={Mode}, IsValueCreated={IsValueCreated}, IsValueFaulted={IsValueFaulted}, Value={ValueForDebugDisplay}")]
     public class Lazy<T>
     {
-        #region Private Fields
+        #region Fields
 
         Exception createException;
         Func<T> factory;
         object value;
 
-        #endregion Private Fields
+        #endregion
 
-        #region Public Constructors
+        #region Constructors
 
         public Lazy() => factory = () => (T)Activator.CreateInstance(typeof(T));
 
         public Lazy(bool isThreadSafe) { }
 
         public Lazy(Func<T> valueFactory, bool isThreadSafe)
-            : this(valueFactory)
-        {
-        }
+            : this(valueFactory) { }
 
         public Lazy(Func<T> valueFactory) => factory = valueFactory ?? throw new ArgumentNullException(nameof(valueFactory));
 
-        #endregion Public Constructors
+        #endregion
 
-        #region Public Properties
+        #region Properties
 
-        public bool IsValueCreated => factory == null && createException == null;
+        public bool IsValueCreated => (factory == null) && (createException == null);
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public T Value
@@ -45,7 +43,7 @@ namespace System
                 {
                     if (createException != null)
                     {
-                        throw new Exception($"{typeof(T)} constructor exception during lazy inititalizer!", createException);
+                        throw new($"{typeof(T)} constructor exception during lazy inititalizer!", createException);
                     }
                     return (T)value;
                 }
@@ -74,13 +72,17 @@ namespace System
             }
         }
 
-        #endregion Public Properties
+        #endregion
+
+        #region Overrides
 
         #region Public Methods
 
         public override string ToString() => IsValueCreated ? Value.ToString() : null;
 
         #endregion Public Methods
+
+        #endregion
     }
 }
 

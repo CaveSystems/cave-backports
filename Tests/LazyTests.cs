@@ -22,12 +22,7 @@ public class LazyTests
     {
         var test = new Lazy<int>(() => throw new TimeoutException());
         Assert.IsFalse(test.IsValueCreated);
-
-        void GetValue()
-        {
-            if (test.Value != 0) { throw new Exception(); }
-        }
-
+        void GetValue() => Assert.AreEqual(0, test.Value);
         Assert.Throws<TimeoutException>(GetValue);
         Assert.IsFalse(test.IsValueCreated);
     }

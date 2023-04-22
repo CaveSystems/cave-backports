@@ -7,7 +7,13 @@ namespace System.Linq
 {
     class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
     {
+        #region Fields
+
         internal readonly IEnumerable<TElement> Group;
+
+        #endregion
+
+        #region Constructors
 
         public Grouping(TKey key, IEnumerable<TElement> group)
         {
@@ -15,11 +21,17 @@ namespace System.Linq
             Key = key;
         }
 
-        public TKey Key { get; }
+        #endregion
+
+        #region IGrouping<TKey,TElement> Members
+
+        IEnumerator IEnumerable.GetEnumerator() => Group.GetEnumerator();
 
         public IEnumerator<TElement> GetEnumerator() => Group.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() => Group.GetEnumerator();
+        public TKey Key { get; }
+
+        #endregion
     }
 }
 

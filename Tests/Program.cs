@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Reflection;
 using NUnit.Framework;
 
 namespace Test;
@@ -17,7 +15,6 @@ class Program
         var asm = Assembly.Load(new AssemblyName(typeof(Program).AssemblyQualifiedName));
         var types = asm.DefinedTypes.ToArray();
 #else
-
         var types = typeof(Program).Assembly.GetTypes();
         Console.WriteLine("net " + Environment.Version);
 #endif
@@ -87,7 +84,7 @@ class Program
         if (errors == 0)
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"---: info TI9999: All tests successfully completed.");
+            Console.WriteLine("---: info TI9999: All tests successfully completed.");
         }
         else
         {

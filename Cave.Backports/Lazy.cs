@@ -1,5 +1,4 @@
 ﻿#if NET20 || NET35
-
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 

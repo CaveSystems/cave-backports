@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
-using System.Runtime.CompilerServices;
 
 namespace Test.Backports;
 
@@ -34,15 +32,14 @@ public class TestHashSet
     }
 
     [Test]
-    public void TestUnion()
+    public void TestExcept()
     {
-        var set1 = new HashSet<int>(new[] { 1, 2 });
-        var set2 = new HashSet<int>(new[] { 2, 3 });
-        var set3 = new HashSet<int>();
-        set3.UnionWith(set1);
-        set3.UnionWith(set2);
-        Assert.IsTrue(set3.SetEquals(set1.Union(set2)));
-        Assert.IsTrue(set3.SequenceEqual(new[] { 1, 2, 3 }));
+        var set1 = new HashSet<int>(new[] { 1, 2, 3 });
+        var set2 = new HashSet<int>(new[] { 2, 3, 4 });
+        var set3 = new HashSet<int>(set1);
+        set3.ExceptWith(set2);
+        Assert.IsTrue(set3.SetEquals(set1.Except(set2)));
+        Assert.IsTrue(set3.SequenceEqual(new[] { 1 }));
     }
 
     [Test]
@@ -57,31 +54,10 @@ public class TestHashSet
     }
 
     [Test]
-    public void TestExcept()
-    {
-        var set1 = new HashSet<int>(new[] { 1, 2, 3 });
-        var set2 = new HashSet<int>(new[] { 2, 3, 4 });
-        var set3 = new HashSet<int>(set1);
-        set3.ExceptWith(set2);
-        Assert.IsTrue(set3.SetEquals(set1.Except(set2)));
-        Assert.IsTrue(set3.SequenceEqual(new[] { 1 }));
-    }
-
-    [Test]
-    public void TestSymetricExcept()
-    {
-        var set1 = new HashSet<int>(new[] { 1, 2, 3 });
-        var set2 = new HashSet<int>(new[] { 2, 3, 4 });
-        var set3 = new HashSet<int>(set1);
-        set3.SymmetricExceptWith(set2);
-        Assert.IsTrue(set3.SequenceEqual(new[] { 1, 4 }));
-    }
-
-    [Test]
     public void TestSuperSubProperOverlap()
     {
         var super = new HashSet<int>(new[] { 1, 2, 3, 4 });
-        var sub = new HashSet<int>(new[] { 2, 3, });
+        var sub = new HashSet<int>(new[] { 2, 3 });
 
         Assert.IsTrue(sub.IsSubsetOf(sub));
         Assert.IsTrue(sub.IsSubsetOf(super));
@@ -110,5 +86,27 @@ public class TestHashSet
         Assert.IsTrue(sub.Overlaps(super));
         Assert.IsTrue(super.Overlaps(sub));
         Assert.IsFalse(sub.Overlaps(new[] { 0 }));
+    }
+
+    [Test]
+    public void TestSymetricExcept()
+    {
+        var set1 = new HashSet<int>(new[] { 1, 2, 3 });
+        var set2 = new HashSet<int>(new[] { 2, 3, 4 });
+        var set3 = new HashSet<int>(set1);
+        set3.SymmetricExceptWith(set2);
+        Assert.IsTrue(set3.SequenceEqual(new[] { 1, 4 }));
+    }
+
+    [Test]
+    public void TestUnion()
+    {
+        var set1 = new HashSet<int>(new[] { 1, 2 });
+        var set2 = new HashSet<int>(new[] { 2, 3 });
+        var set3 = new HashSet<int>();
+        set3.UnionWith(set1);
+        set3.UnionWith(set2);
+        Assert.IsTrue(set3.SetEquals(set1.Union(set2)));
+        Assert.IsTrue(set3.SequenceEqual(new[] { 1, 2, 3 }));
     }
 }

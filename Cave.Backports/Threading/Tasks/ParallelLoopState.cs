@@ -1,5 +1,4 @@
 ﻿#if NET20 || NET35 || NETSTANDARD10
-
 using System.Diagnostics;
 
 namespace System.Threading.Tasks

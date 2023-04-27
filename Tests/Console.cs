@@ -1,12 +1,6 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-
-namespace Tests;
+﻿namespace Tests;
 
 #if NETSTANDARD1_0_OR_GREATER
-
 class Console
 {
     public static ConsoleColor ForegroundColor { get; internal set; }
@@ -15,6 +9,4 @@ class Console
 
     internal static void ResetColor() => throw new NotImplementedException();
 }
-
 #endif
-

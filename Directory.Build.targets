@@ -14,7 +14,8 @@
         <None Include="..\cavesystems.png" Pack="true" Visible="false" PackagePath="\cavesystems.png" />
     </ItemGroup>
 
-    <Target Name="ForceGenerationOfBindingRedirects" AfterTargets="ResolveAssemblyReferences" BeforeTargets="GenerateBindingRedirects" Condition="'$(AutoGenerateBindingRedirects)' == 'true'">
+    <Target Name="ForceGenerationOfBindingRedirects" AfterTargets="ResolveAssemblyReferences"
+            BeforeTargets="GenerateBindingRedirects" Condition="'$(AutoGenerateBindingRedirects)' == 'true'">
         <PropertyGroup>
             <!-- Needs to be set in a target because it has to be set after the initial evaluation in the common targets -->
             <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>

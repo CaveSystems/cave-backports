@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Linq;
 using NUnit.Framework;
 
@@ -12,13 +11,39 @@ public class BackportedExtensionsTests
 
     class Pet
     {
+        #region Properties
+
         public int Age { get; set; }
 
         public string Name { get; set; }
 
+        #endregion
+
+        #region Overrides
+
         /// <inheritdoc />
-        public override bool Equals(object obj) => obj is Pet other && other.Name == Name && other.Age == Age;
+        public override bool Equals(object obj) => obj is Pet other && (other.Name == Name) && (other.Age == Age);
+
+        #endregion
     }
+
+    Pet Barley => new()
+        { Name = "Barley", Age = 10 };
+
+    Pet Boots => new()
+        { Name = "Boots", Age = 4 };
+
+    Pet Bonkers => new()
+        { Name = "Bonkers", Age = 6 };
+
+    Pet Aloise => new()
+        { Name = "Aloise", Age = 10 };
+
+    Pet Charlie => new()
+        { Name = "Charlie", Age = 4 };
+
+    Pet Whiskers => new()
+        { Name = "Whiskers", Age = 6 };
 
     [Test]
     public void CheckAggregate()
@@ -34,22 +59,10 @@ public class BackportedExtensionsTests
 #if NET20
         var longestName = fruits.Aggregate("banana", Select, fruit => fruit.ToUpper());
 #else
-        var longestName = Enumerable.Aggregate(fruits, "banana", Select, fruit => fruit.ToUpper());
+        var longestName = fruits.Aggregate("banana", Select, fruit => fruit.ToUpper());
 #endif
         Assert.AreEqual(longestName, "PASSIONFRUIT");
     }
-
-    Pet Barley => new Pet { Name = "Barley", Age = 10 };
-
-    Pet Boots => new Pet { Name = "Boots", Age = 4 };
-
-    Pet Bonkers => new Pet { Name = "Bonkers", Age = 6 };
-
-    Pet Aloise => new Pet { Name = "Aloise", Age = 10 };
-
-    Pet Charlie => new Pet { Name = "Charlie", Age = 4 };
-
-    Pet Whiskers => new Pet { Name = "Whiskers", Age = 6 };
 
     [Test]
     public void CheckAllAny()
@@ -128,7 +141,5 @@ public class BackportedExtensionsTests
 
         IEnumerable enumerable = defaultGroup;
         Assert.IsTrue(enumerable.Cast<IGrouping<string, Pet>>().All(i => i.All(p => p.Age > 0)));
-
     }
 }
-

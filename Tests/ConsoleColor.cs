@@ -1,12 +1,6 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-
-namespace Tests;
+﻿namespace Tests;
 
 #if NETSTANDARD1_0
-
 public enum ConsoleColor
 {
     Black = 0,
@@ -26,5 +20,4 @@ public enum ConsoleColor
     Yellow = 14,
     White = 15
 }
-
 #endif

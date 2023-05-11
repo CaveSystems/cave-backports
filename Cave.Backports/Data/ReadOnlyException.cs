@@ -1,4 +1,5 @@
-﻿namespace System.Data;
+﻿#if NETSTANDARD1_0
+namespace System.Data;
 
 public class ReadOnlyException : DataException
 {
@@ -12,3 +13,5 @@ public class ReadOnlyException : DataException
 
     #endregion
 }
+
+#endif

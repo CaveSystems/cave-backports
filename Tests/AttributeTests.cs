@@ -21,6 +21,6 @@ public class AttributeTests
     {
         Assert.AreEqual(nameof(CallerMemberNameTest), GetName());
         Assert.AreEqual("AttributeTests.cs", Path.GetFileName(GetFile()));
-        Assert.AreEqual(16, GetLine());
+        Assert.AreEqual(24, GetLine());
     }
 }

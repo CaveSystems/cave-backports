@@ -1,4 +1,5 @@
-﻿namespace System.Data;
+﻿#if NETSTANDARD1_0
+namespace System.Data;
 
 public class InvalidConstraintException : DataException
 {
@@ -12,3 +13,5 @@ public class InvalidConstraintException : DataException
 
     #endregion
 }
+
+#endif

@@ -1,4 +1,5 @@
-﻿namespace System.Data;
+﻿#if NETSTANDARD1_0
+namespace System.Data;
 
 public class RowNotInTableException : DataException
 {
@@ -12,3 +13,5 @@ public class RowNotInTableException : DataException
 
     #endregion
 }
+
+#endif

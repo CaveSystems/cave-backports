@@ -8,7 +8,7 @@
         <ApplicationIcon />
         <OutputType>Exe</OutputType>
         <RootNamespace>Test</RootNamespace>
-        <AssemblyName>Test</AssemblyName>
+        <AssemblyName>ManualTest</AssemblyName>
         <WarningLevel>0</WarningLevel>
         <StartupObject>Test.Program</StartupObject>
     </PropertyGroup>

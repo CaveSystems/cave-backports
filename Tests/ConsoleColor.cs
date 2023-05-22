@@ -1,6 +1,6 @@
 ﻿namespace Tests;
 
-#if NETSTANDARD1_0
+#if (NETSTANDARD1_0_OR_GREATER && ! NETSTANDARD2_0_OR_GREATER)
 public enum ConsoleColor
 {
     Black = 0,

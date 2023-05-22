@@ -12,7 +12,7 @@ class TaskTests
 {
     static TaskTests()
     {
-#if !NETCOREAPP1_1
+#if NETCOREAPP3_0_OR_GREATER || !NETCOREAPP
         ThreadPool.SetMinThreads(100, 100);
 #endif
     }

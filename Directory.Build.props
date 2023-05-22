@@ -45,11 +45,15 @@
         <EmbedUntrackedSources>true</EmbedUntrackedSources>
         <Deterministic>true</Deterministic>
         <DeterministicSourcePaths>false</DeterministicSourcePaths>
-
+        
         <!-- Debug -->
         <DebugType>portable</DebugType>
         <DebugSymbols>true</DebugSymbols>
         <IncludeSymbols>true</IncludeSymbols>
+
+        <!-- Settings -->
+        <CheckEolTargetFramework>false</CheckEolTargetFramework>
+        <TargetLatestRuntimePatch>false</TargetLatestRuntimePatch>
     </PropertyGroup>
 
     <PropertyGroup>

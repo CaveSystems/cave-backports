@@ -78,11 +78,11 @@ public class BackportedExtensionsTests
         Assert.AreEqual(true, pets2.Any(pet => pet.Name.StartsWith("C")));
     }
 
-#if !NETCOREAPP1_1
+#if !NETCOREAPP || NETCOREAPP3_0_OR_GREATER
     [Test]
     public void CheckWhereAny()
     {
-        Assert.True(typeof(BackportedExtensionsTests).GetMethods().Where(m => m.Name == nameof(CheckWhereAny)).Any());
+        Assert.IsTrue(typeof(BackportedExtensionsTests).GetMethods().Where(m => m.Name == nameof(CheckWhereAny)).Any());
         Assert.AreEqual(1, typeof(BackportedExtensionsTests).GetMethods().Where(m => m.Name == nameof(CheckWhereAny)).Count());
     }
 #endif

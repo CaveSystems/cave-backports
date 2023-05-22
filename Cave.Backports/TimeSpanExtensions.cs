@@ -31,7 +31,7 @@ public static class TimeSpanExtensions
                     sb.Append(((int)time.TotalDays).ToString("D1"));
                     return count;
                 case 'h':
-                    if (count < 1 || count > 2) throw new FormatException();
+                    if (count is < 1 or > 2) throw new FormatException();
                     sb.Append(time.Hours.ToString($"D{count}"));
                     return count;
                 case 'm':
@@ -133,8 +133,7 @@ public static class TimeSpanExtensions
                 sb.Append($"{time.Hours:0}:{time.Minutes:00}:{time.Seconds:00}");
                 if (fraction != 0)
                 {
-                    var nfi = formatProvider.GetFormat(typeof(NumberFormatInfo)) as NumberFormatInfo;
-                    sb.Append(nfi != null ? nfi.NumberDecimalSeparator : ".");
+                    sb.Append(formatProvider.GetFormat(typeof(NumberFormatInfo)) is NumberFormatInfo nfi ? nfi.NumberDecimalSeparator : ".");
                     sb.Append(fraction.ToString("0000000").TrimEnd('0'));
                 }
                 break;
@@ -143,8 +142,7 @@ public static class TimeSpanExtensions
                 sb.Append($"{days}:{time.Hours:00}:{time.Minutes:00}:{time.Seconds:00}");
                 if (fraction != 0)
                 {
-                    var nfi = formatProvider.GetFormat(typeof(NumberFormatInfo)) as NumberFormatInfo;
-                    sb.Append(nfi != null ? nfi.NumberDecimalSeparator : ".");
+                    sb.Append(formatProvider.GetFormat(typeof(NumberFormatInfo)) is NumberFormatInfo nfi ? nfi.NumberDecimalSeparator : ".");
                     sb.Append(fraction.ToString("0000000"));
                 }
                 break;
@@ -163,7 +161,7 @@ public static class TimeSpanExtensions
         if (format.Length == 1)
         {
             var c = format[0];
-            if (c == 't' || c == 'T') return FormatKnown(time, "c", formatProvider);
+            if (c is 't' or 'T') return FormatKnown(time, "c", formatProvider);
             return FormatKnown(time, format, formatProvider);
 
         }

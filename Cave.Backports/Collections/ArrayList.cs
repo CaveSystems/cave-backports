@@ -1,4 +1,4 @@
-﻿#if NETSTANDARD1_0
+﻿#if (NETSTANDARD1_0_OR_GREATER && !NETSTANDARD2_0_OR_GREATER)
 #pragma warning disable CA1010
 
 using System.Collections.Generic;
@@ -20,7 +20,7 @@ public class ArrayList : IList
 
     public ArrayList(int capacity) => list = new List<object>(capacity);
 
-    public ArrayList(ICollection collection) => new List<object>(collection.Cast<object>());
+    public ArrayList(ICollection collection) => list = new List<object>(collection.Cast<object>());
 
     #endregion
 

@@ -94,10 +94,10 @@ steps:
     installationPath: $(Agent.ToolsDirectory)/dotnet
 
 - task: UseDotNet@2
-  displayName: 'Install .NET Core sdk 2.1'
+  displayName: 'Install .NET Core sdk 2.2'
   inputs:
     packageType: sdk
-    version: 2.1.x
+    version: 2.2.x
     installationPath: $(Agent.ToolsDirectory)/dotnet
 
 - task: UseDotNet@2

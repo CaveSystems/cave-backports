@@ -1,9 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFrameworks>netstandard1.0;netstandard2.0;netstandard2.1;net20;net35;net40;net45;net50;net60;net70</TargetFrameworks>
-        <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <FileVersion>$([System.DateTime]::UtcNow.Year).$([System.DateTime]::UtcNow.ToString("MMdd")).$([System.DateTime]::UtcNow.ToString("HHmm")).$([System.DateTime]::UtcNow.ToString("ssfff"))</FileVersion>
-        <LangVersion>latest</LangVersion>
+        <TargetFrameworks>
+            net20;net35;net40;net45;net46;net47;net48;
+            netstandard1.0;netstandard1.1;netstandard1.2;netstandard1.3;netstandard1.4;netstandard1.5;netstandard1.6;
+            netstandard2.0;netstandard2.1;
+            net50;net60;net70;
+            netcoreapp3.0;netcoreapp3.1;
+            netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;
+            netcoreapp1.0;netcoreapp1.1;
+        </TargetFrameworks>
         <!--project-->
         <RootNamespace>System</RootNamespace>
         <AssemblyOriginatorKeyFile>cave-backports.snk</AssemblyOriginatorKeyFile>
@@ -13,29 +18,18 @@
         <PackageProjectUrl>https://github.com/CaveSystems/cave-backports</PackageProjectUrl>
         <RepositoryUrl>https://github.com/CaveSystems/cave-backports</RepositoryUrl>
         <!--settings-->
-        <PackageReleaseNotes />
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <SignAssembly>true</SignAssembly>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <NeutralLanguage />
-        <DelaySign>false</DelaySign>
-        <DebugType>portable</DebugType>
-        <DebugSymbols>true</DebugSymbols>
-        <IncludeSymbols>true</IncludeSymbols>
-        <IncludeSymbolsInPackage>true</IncludeSymbolsInPackage>
-        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-        <PublishRepositoryUrl>true</PublishRepositoryUrl>
-        <EmbedUntrackedSources>true</EmbedUntrackedSources>
-        <Deterministic>true</Deterministic>
-        <DeterministicSourcePaths>false</DeterministicSourcePaths>
     </PropertyGroup>
-    <ItemGroup>
-      <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3">
-        <PrivateAssets>all</PrivateAssets>
-        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      </PackageReference>
+
+    <ItemGroup Condition="$(TargetFramework.StartsWith('netcore')) == false" >
+        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
     </ItemGroup>
+
+    <PropertyGroup Condition="$(TargetFramework.StartsWith('netcoreapp'))" >
+        <RollForward>LatestMinor</RollForward>
+    </PropertyGroup>
 
 </Project>

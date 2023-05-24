@@ -11,39 +11,33 @@ public class BackportedExtensionsTests
 
     class Pet
     {
-        #region Properties
-
-        public int Age { get; set; }
-
-        public string Name { get; set; }
-
-        #endregion
-
         #region Overrides
 
         /// <inheritdoc />
         public override bool Equals(object obj) => obj is Pet other && (other.Name == Name) && (other.Age == Age);
 
         #endregion
+
+        #region Properties
+
+        public int Age { get; init; }
+
+        public string Name { get; init; }
+
+        #endregion
     }
 
-    Pet Barley => new()
-        { Name = "Barley", Age = 10 };
+    Pet Barley => new() { Name = "Barley", Age = 10 };
 
-    Pet Boots => new()
-        { Name = "Boots", Age = 4 };
+    Pet Boots => new() { Name = "Boots", Age = 4 };
 
-    Pet Bonkers => new()
-        { Name = "Bonkers", Age = 6 };
+    Pet Bonkers => new() { Name = "Bonkers", Age = 6 };
 
-    Pet Aloise => new()
-        { Name = "Aloise", Age = 10 };
+    Pet Aloise => new() { Name = "Aloise", Age = 10 };
 
-    Pet Charlie => new()
-        { Name = "Charlie", Age = 4 };
+    Pet Charlie => new() { Name = "Charlie", Age = 4 };
 
-    Pet Whiskers => new()
-        { Name = "Whiskers", Age = 6 };
+    Pet Whiskers => new() { Name = "Whiskers", Age = 6 };
 
     [Test]
     public void CheckAggregate()

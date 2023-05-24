@@ -22,10 +22,10 @@ rem if %errorlevel% neq 0 exit /b %errorlevel%
 rem this will test netcore 3.1 and >net46
 dotnet test
 
-dotnet Tests\bin\Release\netcoreapp1.0\Test.dll
-dotnet Tests\bin\Release\netcoreapp1.1\Test.dll
-dotnet Tests\bin\Release\netcoreapp2.0\Test.dll
-dotnet Tests\bin\Release\netcoreapp2.1\Test.dll
+dotnet Tests\bin\Release\netcoreapp1.0\ManualTest.dll
+dotnet Tests\bin\Release\netcoreapp1.1\ManualTest.dll
+dotnet Tests\bin\Release\netcoreapp2.0\ManualTest.dll
+dotnet Tests\bin\Release\netcoreapp2.1\ManualTest.dll
 Tests\bin\Release\net20\Test.exe
 Tests\bin\Release\net35\Test.exe
 Tests\bin\Release\net40\Test.exe

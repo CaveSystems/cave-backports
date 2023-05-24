@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Globalization;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace Test.Backports;
@@ -33,7 +28,7 @@ class TimeSpanTests
         Assert.AreEqual("1:2:59:56,987", time.ToString("g", de));
         Assert.AreEqual("1:02:59:56,9870000", time.ToString("G", de));
 
-        time = new TimeSpan(1, 3, 16, 50, 500);
+        time = new(1, 3, 16, 50, 500);
         Assert.AreEqual("1.03:16:50.5000000", time.ToString("c", de));
         Assert.AreEqual("1:3:16:50,5", time.ToString("g", de));
         Assert.AreEqual("1:03:16:50,5000000", time.ToString("G", de));

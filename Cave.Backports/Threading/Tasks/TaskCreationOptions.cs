@@ -1,5 +1,5 @@
-#if NETSTANDARD10
-#elif NET35 || NET20
+#if NET20 || NET35
+
 namespace System.Threading.Tasks
 {
     [Flags]

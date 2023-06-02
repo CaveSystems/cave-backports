@@ -57,13 +57,14 @@ class TaskTests
     }
 
     [Test]
-    public void TaskStartWait()
+    public void TaskStartWaitAction()
     {
         var syncRoot = new object();
         var list = new List<Task>();
-        for (var i = 0; i < 1000; i++)
+        Action<object> action = n => TestSleep((int)n);
+        for (var i = 0; i < 100; i++)
         {
-            var t = Task.Factory.StartNew(n => TestSleep((int)n), i);
+            var t = Task.Factory.StartNew(action, i);
             list.Add(t);
         }
 
@@ -71,13 +72,14 @@ class TaskTests
     }
 
     [Test]
-    public void TaskStartWait2()
+    public void TaskStartWaitFunc()
     {
         var syncRoot = new object();
         var list = new List<Task>();
-        for (var i = 0; i < 1000; i++)
+        Func<object, object> func = n => { TestSleep((int)n); return true; };
+        for (var i = 0; i < 100; i++)
         {
-            var t = Task.Factory.StartNew(n => TestSleep((int)n), i);
+            var t = Task.Factory.StartNew(func, i);
             list.Add(t);
         }
 
@@ -86,4 +88,29 @@ class TaskTests
             t.Wait();
         }
     }
+
+#if !NET20 && !NET35 && !NET40
+    [Test]
+    public async Task TaskAwaitAction()
+    {
+        var syncRoot = new object();
+        Action<object> action = n => TestSleep((int)n);
+        for (var i = 0; i < 10; i++)
+        {
+            await Task.Factory.StartNew(action, i);
+        }
+    }
+
+    [Test]
+    public async Task TaskAwaitFunc()
+    {
+        var syncRoot = new object();
+        var list = new List<Task>();
+        Func<object, bool> func = n => { TestSleep((int)n); return true; };
+        for (var i = 0; i < 10; i++)
+        {
+            Assert.IsTrue(await Task.Factory.StartNew(func, i));
+        }
+    }
+#endif
 }

@@ -64,7 +64,7 @@ class TaskTests
         Action<object> action = n => TestSleep((int)n);
         for (var i = 0; i < 100; i++)
         {
-            var t = Task.Factory.StartNew(action, i);
+            var t = Task.Factory.StartNew(action, i, TaskCreationOptions.LongRunning);
             list.Add(t);
         }
 
@@ -79,7 +79,7 @@ class TaskTests
         Func<object, object> func = n => { TestSleep((int)n); return true; };
         for (var i = 0; i < 100; i++)
         {
-            var t = Task.Factory.StartNew(func, i);
+            var t = Task.Factory.StartNew(func, i, TaskCreationOptions.LongRunning);
             list.Add(t);
         }
 
@@ -90,14 +90,20 @@ class TaskTests
     }
 
 #if !NET20 && !NET35 && !NET40
+
     [Test]
     public async Task TaskAwaitAction()
     {
         var syncRoot = new object();
         Action<object> action = n => TestSleep((int)n);
+        List<Task> tasks = new();
         for (var i = 0; i < 10; i++)
         {
-            await Task.Factory.StartNew(action, i);
+            tasks.Add(Task.Factory.StartNew(action, i, TaskCreationOptions.LongRunning));
+        }
+        for (var i = 0; i < 10; i++)
+        {
+            await tasks[i];
         }
     }
 
@@ -107,10 +113,16 @@ class TaskTests
         var syncRoot = new object();
         var list = new List<Task>();
         Func<object, bool> func = n => { TestSleep((int)n); return true; };
+        List<Task> tasks = new();
         for (var i = 0; i < 10; i++)
         {
-            Assert.IsTrue(await Task.Factory.StartNew(func, i));
+            tasks.Add(Task.Factory.StartNew(func, i, TaskCreationOptions.LongRunning));
+        }
+        for (var i = 0; i < 10; i++)
+        {
+            await tasks[i];
         }
     }
+
 #endif
 }

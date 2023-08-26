@@ -92,6 +92,30 @@ class TaskTests
     }
 
     [Test]
+    public void ParallelConcurrrentTest()
+    {
+        var started = 0;
+        var startSignal = new ManualResetEvent(false);
+
+        var task = Task.Factory.StartNew(() =>
+        {
+            Parallel.For(0, 100, n =>
+            {
+                Interlocked.Increment(ref started);
+                startSignal.WaitOne();
+            });
+        });
+
+        for (int i = 0; started < 100; i++)
+        {
+            Thread.Sleep(100);
+            if (i > 1000) Assert.Fail($"Tasks started {started}, expected: 100!");
+        }
+        startSignal.Set();
+        Assert.IsTrue(task.Wait(10000), "Tasks did not complete im time!");
+    }
+
+    [Test]
     public void TaskStartWaitFunc()
     {
         var syncRoot = new object();

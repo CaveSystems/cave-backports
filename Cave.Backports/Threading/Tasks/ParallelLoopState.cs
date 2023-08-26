@@ -1,4 +1,5 @@
 ﻿#if NET20 || NET35 || NETSTANDARD10
+
 using System.Diagnostics;
 
 namespace System.Threading.Tasks
@@ -11,11 +12,12 @@ namespace System.Threading.Tasks
         public bool IsExceptional { get; private set; }
 
         public bool IsStopped { get; private set; }
+
         public bool ShouldExitCurrentIteration { get; private set; }
 
         internal bool StopByAnySource => IsExceptional || IsStopped || ShouldExitCurrentIteration;
 
-        #endregion
+        #endregion Properties
 
         #region Members
 
@@ -25,7 +27,7 @@ namespace System.Threading.Tasks
 
         internal void SetException() => IsExceptional = true;
 
-        #endregion
+        #endregion Members
     }
 }
 

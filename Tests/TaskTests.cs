@@ -11,9 +11,6 @@ class TaskTests
 {
     static TaskTests()
     {
-#if NETCOREAPP3_0_OR_GREATER || !NETCOREAPP
-        ThreadPool.SetMinThreads(100, 100);
-#endif
     }
 
     static void TestSleep(int number) => Thread.Sleep(1000 - number);
@@ -69,6 +66,29 @@ class TaskTests
         }
 
         Task.WaitAll(list.ToArray());
+    }
+
+    [Test]
+    public void TaskConcurrrentTest()
+    {
+        var started = 0;
+        var syncRoot = new object();
+        var list = new List<Task>();
+        var startSignal = new ManualResetEvent(false);
+        Action<object> action = n => { Interlocked.Increment(ref started); startSignal.WaitOne(); };
+        for (var i = 0; i < 100; i++)
+        {
+            var t = Task.Factory.StartNew(action, i, TaskCreationOptions.LongRunning);
+            list.Add(t);
+        }
+
+        for (int i = 0; started < 100; i++)
+        {
+            Thread.Sleep(10);
+            if (i > 1000) Assert.Fail($"Tasks started {started}, expected: 100!");
+        }
+        startSignal.Set();
+        Assert.IsTrue(Task.WaitAll(list.ToArray(), 10000), "Tasks did not complete im time!");
     }
 
     [Test]

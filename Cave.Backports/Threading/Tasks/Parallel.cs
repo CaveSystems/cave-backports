@@ -1,4 +1,5 @@
 ﻿#if NET20 || NET35 || NETSTANDARD10
+
 using System.Collections.Generic;
 
 namespace System.Threading.Tasks
@@ -16,22 +17,23 @@ namespace System.Threading.Tasks
             readonly List<Exception> exceptions = new();
             int currentTasks;
 
-            #endregion
+            #endregion Fields
 
             #region Properties
 
             public ParallelLoopState LoopState { get; } = new();
 
             public Action<T> Action { get; set; }
-            public int ConcurrentTasks { get; set; } = Environment.ProcessorCount << 2;
 
-            #endregion
+            public int ConcurrentTasks { get; set; } = -1;
+
+            #endregion Properties
 
             #region IDisposable Members
 
             public void Dispose() => (completed as IDisposable)?.Dispose();
 
-            #endregion
+            #endregion IDisposable Members
 
             #region Members
 
@@ -46,7 +48,7 @@ namespace System.Threading.Tasks
             internal void Start(T item)
             {
                 Interlocked.Increment(ref currentTasks);
-                while (currentTasks >= ConcurrentTasks)
+                while (ConcurrentTasks > 0 && currentTasks >= ConcurrentTasks)
                 {
                     if (LoopState.StopByAnySource)
                     {
@@ -85,10 +87,10 @@ namespace System.Threading.Tasks
                 }
             }
 
-            #endregion
+            #endregion Members
         }
 
-        #endregion
+        #endregion Nested type: Runner
 
         #region Static
 
@@ -188,7 +190,7 @@ namespace System.Threading.Tasks
             instance.Wait();
         }
 
-        #endregion
+        #endregion Static
     }
 }
 

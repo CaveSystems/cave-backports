@@ -1,2 +1,3 @@
-# cave-backports
-Backports of functions present in netstandard2.0 for older frameworks.
+# Moved
+This library is no longer maintained. 
+All classes have been migrated to the [cave-extensions](https://github.com/CaveSystems/cave-extensions) project.
